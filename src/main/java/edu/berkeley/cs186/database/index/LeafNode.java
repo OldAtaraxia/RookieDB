@@ -95,7 +95,7 @@ class LeafNode extends BPlusNode {
     //   +-------------------------+ |
     //                               |
     //
-    // Make sure your code (or your tests) doesn't use stale in-memory cached
+    // Make sure your code (or your tests) doesn't use stale(陈旧的) in-memory cached
     // values of keys and rids.
     private List<DataBox> keys;
     private List<RecordId> rids;
@@ -108,7 +108,7 @@ class LeafNode extends BPlusNode {
     // Constructors ////////////////////////////////////////////////////////////
     /**
      * Construct a brand new leaf node. This constructor will fetch a new pinned
-     * page from the provided BufferManager `bufferManager` and persist the node
+     * page from the provided BufferManager `bufferManager` and persist(持久化) the node
      * to that page.
      */
     LeafNode(BPlusTreeMetadata metadata, BufferManager bufferManager, List<DataBox> keys,
@@ -377,7 +377,24 @@ class LeafNode extends BPlusNode {
         // use the constructor that reuses an existing page instead of fetching a
         // brand new one.
 
-        return null;
+        Page page = bufferManager.fetchPage(treeContext, pageNum);
+        Buffer buf = page.getBuffer();
+
+        byte nodeType = buf.get();
+        assert(nodeType == (byte)1);
+
+        Long rightSibling = buf.getLong();
+        List<DataBox> keys = new ArrayList<>();
+        List<RecordId> rids = new ArrayList<>();
+
+        int n = buf.getInt();
+
+        for (int i = 0; i < n; i++) {
+            keys.add(DataBox.fromBytes(buf, metadata.getKeySchema()));
+            rids.add(RecordId.fromBytes(buf));
+        }
+
+        return new LeafNode(metadata, bufferManager, page, keys, rids, Optional.of(rightSibling), treeContext);
     }
 
     // Builtins ////////////////////////////////////////////////////////////////
