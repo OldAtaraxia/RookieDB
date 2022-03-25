@@ -10,6 +10,7 @@ import edu.berkeley.cs186.database.memory.Page;
 import edu.berkeley.cs186.database.table.RecordId;
 
 import java.nio.ByteBuffer;
+import java.security.Key;
 import java.util.*;
 
 /**
@@ -147,24 +148,52 @@ class LeafNode extends BPlusNode {
     @Override
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
-
-        return null;
+        // 这里不需要判空, 判空逻辑在顶层BPlusTree中
+        return this;
     }
 
     // See BPlusNode.getLeftmostLeaf.
     @Override
     public LeafNode getLeftmostLeaf() {
         // TODO(proj2): implement
-
-        return null;
+        return this;
     }
 
     // See BPlusNode.put.
     @Override
     public Optional<Pair<DataBox, Long>> put(DataBox key, RecordId rid) {
         // TODO(proj2): implement
+        if (keys.contains(key)) {
+            throw new BPlusTreeException("duplicate keys");
+        }
 
-        return Optional.empty();
+        int index = InnerNode.numLessThanEqual(key, keys); // 第一个大于key的地方, 之前的元素都小于key
+        keys.add(index, key);
+        rids.add(index, rid);
+
+        // 判断是否溢出, 是则split
+        if (keys.size() > 2 * this.metadata.getOrder() ) {
+            return split();
+        } else {
+            sync();
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Pair<DataBox, Long>> split() {
+        assert (keys.size() == metadata.getOrder() * 2);
+        assert (rids.size() == metadata.getOrder() * 2);
+
+        List<DataBox> rightKeys = keys.subList(metadata.getOrder(), keys.size());
+        List<RecordId> rightRids = rids.subList(metadata.getOrder(), rids.size());
+        LeafNode rightNode = new LeafNode(metadata, bufferManager, rightKeys, rightRids, rightSibling, treeContext); // 创建一个新leafNode
+        keys.subList(0, metadata.getOrder());
+        rids = rids.subList(0, metadata.getOrder());
+        rightSibling = Optional.of(rightNode.getPage().getPageNum());
+
+        sync();
+
+        return Optional.of(new Pair(rightKeys.get(0), rightNode.getPage().getPageNum()));
     }
 
     // See BPlusNode.bulkLoad.
@@ -180,8 +209,12 @@ class LeafNode extends BPlusNode {
     @Override
     public void remove(DataBox key) {
         // TODO(proj2): implement
-
-        return;
+        if (keys.contains(key)) {
+            int index = keys.indexOf(key);
+            keys.remove(index);
+            rids.remove(index);
+            sync();
+        }
     }
 
     // Iterators ///////////////////////////////////////////////////////////////

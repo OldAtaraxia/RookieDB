@@ -146,10 +146,8 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
-
-
-
-        return Optional.empty();
+        // 调用root节点的get方法
+        return this.root.get(key).getKey(key);
     }
 
     /**
@@ -205,7 +203,8 @@ public class BPlusTree {
 
         // TODO(proj2): Return a BPlusTreeIterator.
 
-        return Collections.emptyIterator();
+//        LeafNode leftmostLeaf = root.getLeftmostLeaf();
+//        return Collections.emptyIterator();
     }
 
     /**
@@ -259,8 +258,23 @@ public class BPlusTree {
         // Note: You should NOT update the root variable directly.
         // Use the provided updateRoot() helper method to change
         // the tree's root if the old root splits.
-
+        Optional<Pair<DataBox, Long>> putPair = root.put(key, rid);
+        if (putPair.isPresent()) {
+            spiltRoot(putPair.get().getFirst(), putPair.get().getSecond());
+        }
         return;
+    }
+
+    private void spiltRoot(DataBox key, Long child) {
+        // 手动创建新的根节点
+        List<DataBox> keys = new ArrayList<>();
+        keys.add(key);
+        List<Long> children = new ArrayList<>();
+        children.add(root.getPage().getPageNum()); // 左孩子即原来的root
+        children.add(child); // 右孩子即返回者
+        BPlusNode newRoot = new InnerNode(metadata, bufferManager, keys, children, lockContext);
+
+        updateRoot(newRoot);
     }
 
     /**
@@ -309,8 +323,7 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): implement
-
-        return;
+        root.remove(key);
     }
 
     // Helpers /////////////////////////////////////////////////////////////////
@@ -424,18 +437,34 @@ public class BPlusTree {
     private class BPlusTreeIterator implements Iterator<RecordId> {
         // TODO(proj2): Add whatever fields and constructors you want here.
 
+        private LeafNode currNode;
+        private Iterator<RecordId> currIter;
+
+        public BPlusTreeIterator(LeafNode currNode) {
+            this.currNode = currNode;
+            this.currIter = currNode.scanAll();
+        }
+
         @Override
         public boolean hasNext() {
             // TODO(proj2): implement
-
-            return false;
+            if (currIter.hasNext()) {
+                return true;
+            } else if(currNode.getRightSibling().isPresent()) {
+                // 更新currNode和currIter
+                currNode = currNode.getRightSibling().get();
+                currIter = currNode.scanAll();
+                return hasNext(); // 这地方可不能直接返回true, 可能新节点是空节点, 要重新调用整个函数
+            } else {
+                return false;
+            }
         }
 
         @Override
         public RecordId next() {
             // TODO(proj2): implement
-
-            throw new NoSuchElementException();
+            if(currIter.hasNext()) return currIter.next();
+            else throw new NoSuchElementException();
         }
     }
 }
