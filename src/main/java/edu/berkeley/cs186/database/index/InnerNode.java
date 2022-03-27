@@ -84,7 +84,6 @@ class InnerNode extends BPlusNode {
     public LeafNode get(DataBox key) {
         // TODO(proj2): implement
         int index = numLessThanEqual(key, this.keys);
-        if (index >= 0 && index < keys.size())
         return this.getChild(index).get(key);
     }
 
@@ -125,10 +124,11 @@ class InnerNode extends BPlusNode {
         List<Long> rightChildren = children.subList(metadata.getOrder() + 1, children.size());
         DataBox splitKey = keys.get(metadata.getOrder());
 
-        InnerNode rightNode = new InnerNode(metadata, bufferManager, rightKeys, rightChildren, treeContext);
         keys = keys.subList(0, metadata.getOrder());
         children = children.subList(0, metadata.getOrder() + 1);
         sync();
+
+        InnerNode rightNode = new InnerNode(metadata, bufferManager, rightKeys, rightChildren, treeContext);
 
         return Optional.of(new Pair(splitKey, rightNode.getPage().getPageNum()));
     }
@@ -138,8 +138,23 @@ class InnerNode extends BPlusNode {
     public Optional<Pair<DataBox, Long>> bulkLoad(Iterator<Pair<DataBox, RecordId>> data,
             float fillFactor) {
         // TODO(proj2): implement
+        assert (fillFactor > 0 && fillFactor <= 1);
+        Optional<Pair<DataBox, Long>> res = Optional.empty();
+        while (keys.size() <= 2 * metadata.getOrder() && data.hasNext()) {
+            Optional<Pair<DataBox, Long>> bulkPair = getChild(children.size() - 1).bulkLoad(data, fillFactor);
+            if (bulkPair.isPresent()) {
+                keys.add(bulkPair.get().getFirst());
+                children.add(bulkPair.get().getSecond());
 
-        return Optional.empty();
+                // 节点溢出
+                if (keys.size() > 2 * metadata.getOrder()) {
+                    res = split();
+                    break;
+                }
+            }
+        }
+        sync();
+        return res;
     }
 
     // See BPlusNode.remove.

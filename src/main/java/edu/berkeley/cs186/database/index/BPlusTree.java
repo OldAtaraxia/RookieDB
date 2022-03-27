@@ -11,6 +11,7 @@ import edu.berkeley.cs186.database.io.DiskSpaceManager;
 import edu.berkeley.cs186.database.memory.BufferManager;
 import edu.berkeley.cs186.database.table.RecordId;
 
+import javax.xml.crypto.Data;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -202,9 +203,7 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): Return a BPlusTreeIterator.
-
-//        LeafNode leftmostLeaf = root.getLeftmostLeaf();
-//        return Collections.emptyIterator();
+        return new BPlusTreeIterator(root.getLeftmostLeaf());
     }
 
     /**
@@ -236,8 +235,8 @@ public class BPlusTree {
         LockUtil.ensureSufficientLockHeld(lockContext, LockType.NL);
 
         // TODO(proj2): Return a BPlusTreeIterator.
-
-        return Collections.emptyIterator();
+        LeafNode startNode = root.get(key);
+        return new BPlusTreeIterator(startNode, key);
     }
 
     /**
@@ -302,8 +301,12 @@ public class BPlusTree {
         // Note: You should NOT update the root variable directly.
         // Use the provided updateRoot() helper method to change
         // the tree's root if the old root splits.
-
-        return;
+        while (data.hasNext()) {
+            Optional<Pair<DataBox, Long>> bulkPair = root.bulkLoad(data, fillFactor);
+            if (bulkPair.isPresent()) {
+                spiltRoot(bulkPair.get().getFirst(), bulkPair.get().getSecond());
+            }
+        }
     }
 
     /**
@@ -443,6 +446,11 @@ public class BPlusTree {
         public BPlusTreeIterator(LeafNode currNode) {
             this.currNode = currNode;
             this.currIter = currNode.scanAll();
+        }
+
+        public BPlusTreeIterator(LeafNode currNode, DataBox startKey) {
+            this.currNode = currNode;
+            this.currIter = currNode.scanGreaterEqual(startKey);
         }
 
         @Override
