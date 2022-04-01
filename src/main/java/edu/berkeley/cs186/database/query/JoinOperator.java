@@ -70,6 +70,9 @@ public abstract class JoinOperator extends QueryOperator {
         Schema rightSchema = this.rightSource.getSchema();
 
         // Set up join column attributes
+        /* 对于Schema需要用自己的`computeSchema`, 具体因为当前有两个source.
+        要在computeSchema里读取两个Source的Schema然后更新`leftColumnIndex`和`rightColumnIndex`
+         */
         this.leftColumnIndex = leftSchema.findField(this.leftColumnName);
         this.rightColumnIndex = rightSchema.findField(this.rightColumnName);
 
