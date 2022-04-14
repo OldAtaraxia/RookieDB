@@ -153,7 +153,7 @@ public abstract class JoinOperator extends QueryOperator {
      * schema. Can be used to determine which value in the left relation's records
      * to check for equality on.
      */
-    public int getLeftColumnIndex() {
+    public int  getLeftColumnIndex() {
         return this.leftColumnIndex;
     }
 

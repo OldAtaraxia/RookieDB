@@ -172,6 +172,7 @@ public class GHJOperator extends JoinOperator {
             // TODO(proj3_part1): implement the rest of grace hash join
             // If you meet the conditions to run the build and probe you should
             // do so immediately. Otherwise you should make a recursive call.
+            // System.out.println("Now leftPartitions.getNumPages == " + leftPartitions[i].getNumPages() + " and rightPartitions.getNumPages == " + rightPartitions[i].getNumPages());
             if (leftPartitions[i].getNumPages() <= numBuffers - 2 || rightPartitions[i].getNumPages() <= numBuffers - 2)  {
                 buildAndProbe(leftPartitions[i], rightPartitions[i]);
             } else {
@@ -245,6 +246,12 @@ public class GHJOperator extends JoinOperator {
 
         // TODO(proj3_part1): populate leftRecords and rightRecords such that
         // SHJ breaks when trying to join them but not GHJ
+        int recordNumPrePage = 8; // magic number
+        int numBuffers = 6;
+        for (int i = 0; i < (numBuffers - 2) * (numBuffers - 1) * recordNumPrePage; i++) {
+            leftRecords.add(createRecord(i));
+        }
+        rightRecords.add(createRecord(114514));
         return new Pair<>(leftRecords, rightRecords);
     }
 
@@ -265,7 +272,12 @@ public class GHJOperator extends JoinOperator {
         ArrayList<Record> leftRecords = new ArrayList<>();
         ArrayList<Record> rightRecords = new ArrayList<>();
         // TODO(proj3_part1): populate leftRecords and rightRecords such that GHJ breaks
-
+        int recordNumPrePage = 8;
+        int numBuffers = 6;
+        for (int i = 0; i <= (numBuffers - 2) * recordNumPrePage ; i++) {
+            leftRecords.add(createRecord(114514));
+            rightRecords.add(createRecord(114514));
+        }
         return new Pair<>(leftRecords, rightRecords);
     }
 }
