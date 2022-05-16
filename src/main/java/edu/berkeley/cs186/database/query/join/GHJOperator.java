@@ -174,6 +174,7 @@ public class GHJOperator extends JoinOperator {
             // do so immediately. Otherwise you should make a recursive call.
             // System.out.println("Now leftPartitions.getNumPages == " + leftPartitions[i].getNumPages() + " and rightPartitions.getNumPages == " + rightPartitions[i].getNumPages());
             if (leftPartitions[i].getNumPages() <= numBuffers - 2 || rightPartitions[i].getNumPages() <= numBuffers - 2)  {
+                // 存在page数量 <= B-2的partition就直接build就好了
                 buildAndProbe(leftPartitions[i], rightPartitions[i]);
             } else {
                 // 递归调用run

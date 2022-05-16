@@ -19,6 +19,7 @@ public class SNLJOperator extends JoinOperator {
                         String leftColumnName,
                         String rightColumnName,
                         TransactionContext transaction) {
+        // rightSource需要物化, 因为后续需要多次遍历它
         super(leftSource, materialize(rightSource, transaction),
               leftColumnName, rightColumnName, transaction, JoinType.SNLJ);
         this.stats = this.estimateStats();

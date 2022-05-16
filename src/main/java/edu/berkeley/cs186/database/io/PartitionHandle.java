@@ -51,7 +51,7 @@ class PartitionHandle implements AutoCloseable {
      * @param fileName name of OS file partition is stored in
      */
     void open(String fileName) {
-        assert (this.fileChannel == null);
+        assert (this.fileChannel == null); // 不能重复打开喽
         try {
             this.file = new RandomAccessFile(fileName, "rw");
             this.fileChannel = this.file.getChannel();
@@ -63,7 +63,7 @@ class PartitionHandle implements AutoCloseable {
                 // old file, read in master page + header pages
                 ByteBuffer b = ByteBuffer.wrap(new byte[PAGE_SIZE]);
                 this.fileChannel.read(b, PartitionHandle.masterPageOffset());
-                b.position(0);
+                b.position(0); // 改成b.flip()行吗
                 for (int i = 0; i < MAX_HEADER_PAGES; ++i) {
                     this.masterPage[i] = Short.toUnsignedInt(b.getShort());
                     if (PartitionHandle.headerPageOffset(i) < length) {
@@ -98,6 +98,7 @@ class PartitionHandle implements AutoCloseable {
         ByteBuffer b = ByteBuffer.wrap(new byte[PAGE_SIZE]);
         for (int i = 0; i < MAX_HEADER_PAGES; ++i) {
             b.putShort((short) masterPage[i]);
+
         }
         b.position(0);
         this.fileChannel.write(b, PartitionHandle.masterPageOffset());
@@ -314,8 +315,8 @@ class PartitionHandle implements AutoCloseable {
         // the master page, and then take the header index times the number
         // of data pages per header plus 1 to account for the header page
         // itself (in the above example this coefficient would be 5)
-        long spacingCoeff = DATA_PAGES_PER_HEADER + 1; // Promote to long
-        return (1 + headerIndex * spacingCoeff) * PAGE_SIZE;
+        long spacingCoeff = DATA_PAGES_PER_HEADER + 1; // Promote to long, 这里的1是代表了header page
+        return (1 + headerIndex * spacingCoeff) * PAGE_SIZE; // 1代表master page
     }
 
     /**
