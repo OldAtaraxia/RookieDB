@@ -68,6 +68,7 @@ public class SortOperator extends QueryOperator {
 
     @Override
     public BacktrackingIterator<Record> backtrackingIterator() {
+        // 调用BackTrackingIterator()的时候会自动调用sort()方法进行排序
         if (this.sortedRecords == null) this.sortedRecords = sort();
         return sortedRecords.iterator();
     }

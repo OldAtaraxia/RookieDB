@@ -34,7 +34,7 @@ public class SortMergeOperator extends JoinOperator {
                                              QueryOperator leftSource,
                                              String leftColumn) {
         leftColumn = leftSource.getSchema().matchFieldName(leftColumn);
-        if (leftSource.sortedBy().contains(leftColumn)) return leftSource;
+        if (leftSource.sortedBy().contains(leftColumn)) return leftSource; // 已经是根据指定列排序的SortOperator了
         return new SortOperator(transaction, leftSource, leftColumn);
     }
 
@@ -139,13 +139,62 @@ public class SortMergeOperator extends JoinOperator {
          * or null if there are no more records to join.
          */
         private Record fetchNextRecord() {
+            Record ans = null;
             // TODO(proj3_part1): implement
-            return null;
+
+            // 首先判断rightIterat是否被mark
+            if (marked) {
+                // rightIterator没有到头且
+                if (rightRecord != null && compare(leftRecord, rightRecord) == 0) {
+                    ans = leftRecord.concat(rightRecord);
+                    // log(ans);
+                    updateRightRecord(); // rightRecord继续++
+                } else {
+                    marked = false;
+                    rightIterator.reset();
+                    rightRecord = rightIterator.next();
+                    updateLeftRecord();
+                }
+            }
+
+            while (!marked && leftRecord != null && rightRecord != null) {
+                // 正常情况
+                if (compare(leftRecord, rightRecord) > 0) updateRightRecord();
+                else if (compare(leftRecord, rightRecord) < 0) updateLeftRecord();
+                else {
+                    // left == right
+                    ans = leftRecord.concat(rightRecord);
+                    // log(ans);
+                    rightIterator.markPrev();
+                    marked = true;
+                    // 这里首先让rightRecord++
+                    updateRightRecord();
+                    break;
+                }
+            }
+            return ans;
         }
 
         @Override
         public void remove() {
             throw new UnsupportedOperationException();
+        }
+
+        // utils for updating records
+        private void updateLeftRecord() {
+            if (leftIterator.hasNext()) leftRecord = leftIterator.next();
+            else leftRecord = null;
+        }
+
+        private void updateRightRecord() {
+            if (rightIterator.hasNext()) rightRecord = rightIterator.next();
+            else rightRecord = null;
+        }
+
+        // utils for logging
+        private void log(Record ans) {
+            System.out.println("leftRecord == " + leftRecord.toString() + " and rightRecord == " + rightRecord.toString());
+            System.out.println("found ans " + ans.toString());
         }
     }
 }
