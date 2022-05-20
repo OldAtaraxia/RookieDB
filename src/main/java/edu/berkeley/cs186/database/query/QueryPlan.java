@@ -575,8 +575,31 @@ public class QueryPlan {
      */
     public QueryOperator minCostSingleAccess(String table) {
         QueryOperator minOp = new SequentialScanOperator(this.transaction, table);
+        int minIOCost = minOp.estimateIOCost();
+        int index = -1;
 
         // TODO(proj3_part2): implement
+        for (Integer i : getEligibleIndexColumns(table)) {
+            SelectPredicate selectPredicate = selectPredicates.get(i);
+            boolean hasIndex = this.transaction.indexExists(table, selectPredicate.column);
+            if (hasIndex && selectPredicate.operator != PredicateOperator.NOT_EQUALS) {
+                QueryOperator indexScanOperator = new IndexScanOperator(
+                        this.transaction,
+                        table,
+                        selectPredicate.column,
+                        selectPredicate.operator,
+                        selectPredicate.value
+                );
+                int indexIoCost = indexScanOperator.estimateIOCost();
+                // 更新minCost和minOp
+                if (minIOCost > indexIoCost) {
+                    minIOCost = indexIoCost;
+                    minOp = indexScanOperator;
+                    index = i;
+                }
+            }
+        }
+        minOp = addEligibleSelections(minOp, index);
         return minOp;
     }
 
@@ -675,6 +698,9 @@ public class QueryPlan {
         return minOp;
     }
 
+
+
+
     /**
      * Generates an optimized QueryPlan based on the System R cost-based query
      * optimizer.
@@ -717,7 +743,8 @@ public class QueryPlan {
     private int getEligibleIndexColumnNaive() {
         boolean hasGroupBy = this.groupByColumns.size() > 0;
         boolean hasJoin = this.joinPredicates.size() > 0;
-        if (hasGroupBy || hasJoin) return -1;
+        if (hasGroupBy || hasJoin) return -1; // 如果有groupBy或者join的情况就不能用index了
+        // 遍历所有的select谓词, 找是否有能用使用index的
         for (int i = 0; i < selectPredicates.size(); i++) {
             // For each selection predicate, check if we have an index on the
             // predicate's column. If the predicate operator is something
@@ -765,9 +792,10 @@ public class QueryPlan {
     public Iterator<Record> executeNaive() {
         this.transaction.setAliasMap(this.aliases);
         try {
+            // 判断是否可以使用索引
             int indexPredicate = this.getEligibleIndexColumnNaive();
             if (indexPredicate != -1) {
-                this.generateIndexPlanNaive(indexPredicate);
+                this.generateIndexPlanNaive(indexPredicate); // 会返回一个IndexScanOperator
             } else {
                 // start off with a scan on the first table
                 this.finalOperator = new SequentialScanOperator(
