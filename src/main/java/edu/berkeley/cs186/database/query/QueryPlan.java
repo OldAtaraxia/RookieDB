@@ -621,6 +621,8 @@ public class QueryPlan {
                                           String rightColumn) {
         QueryOperator bestOperator = null;
         int minimumCost = Integer.MAX_VALUE;
+
+        // 只考虑snlj和bnlj
         List<QueryOperator> allJoins = new ArrayList<>();
         allJoins.add(new SNLJOperator(leftOp, rightOp, leftColumn, rightColumn, this.transaction));
         allJoins.add(new BNLJOperator(leftOp, rightOp, leftColumn, rightColumn, this.transaction));
@@ -645,7 +647,8 @@ public class QueryPlan {
      * @param prevMap  maps a set of tables to a query operator over the set of
      *                 tables. Each set should have pass number - 1 elements.
      * @param pass1Map each set contains exactly one table maps to a single
-     *                 table access (scan) query operator.
+     *                 table access (scan) query operator. 这里的pass1Map应该就是
+     *                 pass1得到的结果, 存的是每个table对scanOperator的映射
      * @return a mapping of table names to a join QueryOperator. The number of
      * elements in each set of table names should be equal to the pass number.
      */
@@ -669,6 +672,42 @@ public class QueryPlan {
         //      calculate the cheapest join with the new table (the one you
         //      fetched an operator for from pass1Map) and the previously joined
         //      tables. Then, update the result map if needed.
+
+        // 就根据上面的注释来呗
+        for (Set<String> set : prevMap.keySet()) {
+            for (JoinPredicate predicate : this.joinPredicates) {
+                // Get the left side and the right side of the predicates (table name and column)
+                String leftTable = predicate.leftTable, rightTable = predicate.rightTable;
+                String leftCloumn = predicate.leftColumn, rightColumn = predicate.rightColumn;
+                Set<String> keySet = new HashSet<>(set);
+                QueryOperator joinOperator = null;
+                if(set.contains(leftTable) && !set.contains(rightTable)) {
+                    keySet.add(rightTable);
+                    joinOperator = minCostJoinType(prevMap.get(set),
+                            pass1Map.get(Collections.singleton(rightTable)),
+                            leftCloumn, rightColumn);
+                } else if(set.contains(rightTable) && !set.contains(leftTable)) {
+                    keySet.add(leftTable);
+                    joinOperator = minCostJoinType(prevMap.get(set),
+                            pass1Map.get(Collections.singleton(leftTable)),
+                            rightColumn, leftCloumn);
+                } else {
+                    continue;
+                }
+
+                // 不能直接result.put, 因为当前的keySet可能与之前重复
+                // 比如现在是{B, C} join A, 之前可能有{A, B} join C
+                // 这样也相当于剪枝了
+                if (!result.containsKey(keySet)) {
+                    result.put(keySet, joinOperator);
+                } else {
+                    if (result.get(keySet).estimateIOCost() > joinOperator.estimateIOCost()) {
+                        result.put(keySet, joinOperator);
+                    }
+                }
+            }
+        }
+
         return result;
     }
 
