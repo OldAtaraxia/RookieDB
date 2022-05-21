@@ -696,7 +696,6 @@ public class QueryPlan {
                     continue;
                 }
 
-                System.out.println(keySet);
                 // 不能直接result.put, 因为当前的keySet可能与之前重复
                 // 比如现在是{B, C} join A, 之前可能有{A, B} join C
                 // 这样也相当于剪枝了
@@ -779,9 +778,7 @@ public class QueryPlan {
             result = minCostJoins(result, pass1Map);
         }
 
-        System.out.println(result.keySet());
         this.finalOperator = result.get(new HashSet<>(this.tableNames));
-        this.addSelectsNaive();
         this.addGroupBy();
         this.addProject();
         this.addSort();
