@@ -10,6 +10,7 @@ import edu.berkeley.cs186.database.table.Record;
 import edu.berkeley.cs186.database.table.Schema;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * QueryPlan provides a set of functions to generate simple queries. Calling the
@@ -695,6 +696,7 @@ public class QueryPlan {
                     continue;
                 }
 
+                System.out.println(keySet);
                 // 不能直接result.put, 因为当前的keySet可能与之前重复
                 // 比如现在是{B, C} join A, 之前可能有{A, B} join C
                 // 这样也相当于剪枝了
@@ -760,7 +762,32 @@ public class QueryPlan {
         // Set the final operator to the lowest cost operator from the last
         // pass, add group by, project, sort and limit operators, and return an
         // iterator over the final operator.
-        return this.executeNaive(); // TODO(proj3_part2): Replace this!
+
+        // return this.executeNaive(); // TODO(proj3_part2): Replace this!
+
+        Map<Set<String>, QueryOperator> pass1Map = new HashMap<>();
+        Map<Set<String>, QueryOperator> result = new HashMap<>();
+
+        // pass 1
+        for (String table : this.tableNames) {
+            pass1Map.put(Collections.singleton(table), minCostSingleAccess(table));
+            result.put(Collections.singleton(table), minCostSingleAccess(table));
+        }
+
+        // pass 2..n
+        while (result.keySet().size() > 1) {
+            result = minCostJoins(result, pass1Map);
+        }
+
+        System.out.println(result.keySet());
+        this.finalOperator = result.get(new HashSet<>(this.tableNames));
+        this.addSelectsNaive();
+        this.addGroupBy();
+        this.addProject();
+        this.addSort();
+        this.addLimit();
+
+        return finalOperator.iterator();
     }
 
     // EXECUTE NAIVE ///////////////////////////////////////////////////////////
