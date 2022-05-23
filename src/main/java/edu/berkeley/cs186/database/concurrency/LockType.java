@@ -22,6 +22,14 @@ public enum LockType {
             throw new NullPointerException("null lock type");
         }
         // TODO(proj4_part1): implement
+        if (a == NL || b == NL) return true;
+        switch (a) {
+            case S: return (b == S) || (b == IS);
+            case X: return false; // return b == NL
+            case IS: return !(b == X);
+            case IX: return (b == IS) || (b == IX);
+            case SIX: return b == IS;
+        }
 
         return false;
     }
@@ -54,8 +62,15 @@ public enum LockType {
             throw new NullPointerException("null lock type");
         }
         // TODO(proj4_part1): implement
-
-        return false;
+        switch (childLockType) {
+            case NL: return true;
+            case S: return (parentLockType == IS) || (parentLockType == IX); // 给某个点加S就相当于给所有的子节点加S, 这一点是默认进行的
+            case X: return (parentLockType == IX) || (parentLockType == SIX);
+            case IS: return (parentLockType == IS) || (parentLockType == IX);
+            case IX: return (parentLockType == IX) || (parentLockType == SIX);
+            case SIX: return (parentLockType == SIX) || (parentLockType == IX);
+            default: throw new UnsupportedOperationException("bad lock type");
+        }
     }
 
     /**
@@ -69,8 +84,19 @@ public enum LockType {
             throw new NullPointerException("null lock type");
         }
         // TODO(proj4_part1): implement
+        // 其实顺序无所谓捏
+        if (substitute == required) return true;
 
-        return false;
+        switch (required) {
+            case S: return (substitute == X) || (substitute == SIX);
+            case IS: return (substitute == IX) || (substitute == SIX) || (substitute == S) || (substitute == X);
+            case X: return false; // X应该找不到对应的可替代的锁吧
+            case IX: return (substitute == SIX) || (substitute == X);
+            case SIX: return (substitute == X); // SIX显然也找不到吧...
+            case NL: return true;
+
+            default: throw new UnsupportedOperationException("bad lock type");
+        }
     }
 
     /**
