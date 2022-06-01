@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>E:/dev/CS186/src/main/java/edu/berkeley/cs186/database/query</OriginalElement>
+  <nodes>
+    <node x="0.0" y="4600.0">edu.berkeley.cs186.database.query.aggr.RangeAggregateFunction</node>
+    <node x="4891.75" y="1320.0">edu.berkeley.cs186.database.query.join.GHJOperator</node>
+    <node x="1999.0" y="4600.0">edu.berkeley.cs186.database.query.aggr.MinAggregateFunction</node>
+    <node x="3701.75" y="1458.5">edu.berkeley.cs186.database.query.join.SNLJOperator</node>
+    <node x="2028.4999999999998" y="855.5">edu.berkeley.cs186.database.query.SelectOperator</node>
+    <node x="2764.0" y="4332.0">edu.berkeley.cs186.database.query.disk.Partition</node>
+    <node x="0.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.GreaterThanEqualFunction</node>
+    <node x="706.0" y="1447.0">edu.berkeley.cs186.database.query.MaterializeOperator</node>
+    <node x="1216.0" y="4332.0">edu.berkeley.cs186.database.query.aggr.AggregateFunction</node>
+    <node x="3378.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.AndFunction</node>
+    <node x="1465.867857142857" y="740.5">edu.berkeley.cs186.database.query.SortOperator</node>
+    <node x="5500.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.UpperFunction</node>
+    <node x="4361.75" y="1446.5">edu.berkeley.cs186.database.query.join.BNLJOperator</node>
+    <node x="3151.0" y="1435.0">edu.berkeley.cs186.database.query.IndexScanOperator.IndexScanIterator</node>
+    <node x="4349.0" y="4091.0">edu.berkeley.cs186.database.query.aggr.DataFunction.ColumnDataSource</node>
+    <node x="5994.0" y="4114.0">edu.berkeley.cs186.database.query.aggr.DataFunction.LiteralDataSource</node>
+    <node x="4018.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.MultiplyFunction</node>
+    <node x="4571.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.ModuloFunction</node>
+    <node x="5415.75" y="1366.0">edu.berkeley.cs186.database.query.join.SHJOperator</node>
+    <node x="1499.0" y="4577.0">edu.berkeley.cs186.database.query.aggr.RandomAggregateFunction</node>
+    <node x="1021.0" y="4068.0">edu.berkeley.cs186.database.query.aggr.DataFunction.AggregateDataFunction</node>
+    <node x="1530.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.LessThanEqualFunction</node>
+    <node x="1681.7499999999998" y="1470.0">edu.berkeley.cs186.database.query.SortOperator.RecordPairComparator</node>
+    <node x="3791.75" y="1819.0">edu.berkeley.cs186.database.query.join.SNLJOperator.SNLJIterator</node>
+    <node x="3686.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.UnequalFunction</node>
+    <node x="1262.0" y="4600.0">edu.berkeley.cs186.database.query.aggr.MaxAggregateFunction</node>
+    <node x="384.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.AddFunction</node>
+    <node x="1453.7499999999998" y="1470.0">edu.berkeley.cs186.database.query.SortOperator.RecordComparator</node>
+    <node x="97.25" y="3295.0">edu.berkeley.cs186.database.query.QueryPlan.JoinPredicate</node>
+    <node x="2472.0" y="4611.5">edu.berkeley.cs186.database.query.aggr.StdDevAggregateFunction</node>
+    <node x="6697.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.EqualFunction</node>
+    <node x="5746.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.RoundFunction</node>
+    <node x="6064.25" y="1750.0">edu.berkeley.cs186.database.query.join.SortMergeOperator.SortMergeIterator</node>
+    <node x="2479.5" y="832.5">edu.berkeley.cs186.database.query.ProjectOperator</node>
+    <node x="0.0" y="2152.0">edu.berkeley.cs186.database.query.QueryPlan</node>
+    <node x="2618.0" y="1435.0">edu.berkeley.cs186.database.query.ProjectOperator.ProjectIterator</node>
+    <node x="690.0" y="832.5">edu.berkeley.cs186.database.query.SequentialScanOperator</node>
+    <node x="5938.75" y="1424.0">edu.berkeley.cs186.database.query.join.SortMergeOperator</node>
+    <node x="1014.0" y="4611.5">edu.berkeley.cs186.database.query.aggr.CountAggregateFunction</node>
+    <node x="3078.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.OrFunction</node>
+    <node x="251.0" y="4588.5">edu.berkeley.cs186.database.query.aggr.VarianceAggregateFunction</node>
+    <node x="3006.5" y="809.5">edu.berkeley.cs186.database.query.IndexScanOperator</node>
+    <node x="4671.75" y="1773.0">edu.berkeley.cs186.database.query.join.BNLJOperator.BNLJIterator</node>
+    <node x="6220.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.LowerFunction</node>
+    <node x="301.0" y="1412.0">edu.berkeley.cs186.database.query.GroupByOperator.GroupByIterator</node>
+    <node x="945.5749999999998" y="0.0">edu.berkeley.cs186.database.query.QueryOperator</node>
+    <node x="1763.0" y="4600.0">edu.berkeley.cs186.database.query.aggr.FirstAggregateFunction</node>
+    <node x="234.0" y="855.5">edu.berkeley.cs186.database.query.GroupByOperator</node>
+    <node x="1136.9999999999998" y="878.5">edu.berkeley.cs186.database.query.LimitOperator</node>
+    <node x="5236.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.NegationFunction</node>
+    <node x="363.25" y="3306.5">edu.berkeley.cs186.database.query.QueryPlan.SelectPredicate</node>
+    <node x="2229.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.ReplaceFunction</node>
+    <node x="3648.0" y="3536.0">edu.berkeley.cs186.database.query.aggr.DataFunction</node>
+    <node x="6465.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.CeilFunction</node>
+    <node x="516.0" y="4600.0">edu.berkeley.cs186.database.query.aggr.LastAggregateFunction</node>
+    <node x="0.0" y="844.0">edu.berkeley.cs186.database.query.QueryOperator.OperatorType</node>
+    <node x="1896.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.SubtractFunction</node>
+    <node x="4149.825" y="729.0">edu.berkeley.cs186.database.query.JoinOperator</node>
+    <node x="3101.0" y="4332.0">edu.berkeley.cs186.database.query.disk.Run</node>
+    <node x="3496.75" y="1389.0">edu.berkeley.cs186.database.query.JoinOperator.JoinType</node>
+    <node x="4900.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.LessThanFunction</node>
+    <node x="1154.4999999999998" y="1423.5">edu.berkeley.cs186.database.query.LimitOperator.LimitIterator</node>
+    <node x="692.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.DivisionFunction</node>
+    <node x="2838.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.FloorFunction</node>
+    <node x="2484.0" y="4126.0">edu.berkeley.cs186.database.query.aggr.DataFunction.GreaterThanFunction</node>
+    <node x="752.0" y="4600.0">edu.berkeley.cs186.database.query.aggr.AverageAggregateFunction</node>
+    <node x="2234.0" y="4577.0">edu.berkeley.cs186.database.query.aggr.SumAggregateFunction</node>
+    <node x="2129.0" y="1423.5">edu.berkeley.cs186.database.query.SelectOperator.SelectIterator</node>
+    <node x="4141.75" y="1900.5">edu.berkeley.cs186.database.query.join.PNLJOperator</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="edu.berkeley.cs186.database.query.SortOperator.RecordComparator" target="edu.berkeley.cs186.database.query.SortOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-40.0" />
+      <point x="1557.7499999999998" y="1300.0" />
+      <point x="1652.867857142857" y="1300.0" />
+      <point x="0.0" y="259.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.SortOperator.RecordPairComparator" target="edu.berkeley.cs186.database.query.SortOperator" relationship="INNER_CLASS">
+      <point x="2.2737367544323206E-13" y="-40.0" />
+      <point x="1870.75" y="1300.0" />
+      <point x="1652.867857142857" y="1300.0" />
+      <point x="0.0" y="259.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.FirstAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-98.0" />
+      <point x="1871.0" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.AverageAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-98.0" />
+      <point x="873.0" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.BNLJOperator.BNLJIterator" target="edu.berkeley.cs186.database.query.join.BNLJOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-155.5" />
+      <point x="4836.75" y="1725.0" />
+      <point x="4744.25" y="1725.0" />
+      <point x="127.5" y="63.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.ColumnDataSource" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-50.5" y="-86.5" />
+      <point x="4399.5" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.GreaterThanEqualFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="91.0" y="-51.5" />
+      <point x="273.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.VarianceAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-109.5" />
+      <point x="373.5" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.DivisionFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="77.25" y="-51.5" />
+      <point x="923.75" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.BNLJOperator" target="edu.berkeley.cs186.database.query.JoinOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-63.5" />
+      <point x="4616.75" y="1300.0" />
+      <point x="5143.75" y="1300.0" />
+      <point x="5143.75" y="1290.0" />
+      <point x="4568.325" y="1290.0" />
+      <point x="139.5" y="270.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.MaxAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-98.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.QueryOperator.OperatorType" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-155.5" />
+      <point x="107.0" y="699.0" />
+      <point x="1068.3249999999998" y="699.0" />
+      <point x="-122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.UpperFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="56.5" y="-51.5" />
+      <point x="5669.5" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.StdDevAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-86.5" />
+      <point x="2595.5" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.AggregateDataFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-122.25" y="-109.5" />
+      <point x="1143.25" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.SubtractFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="78.25" y="-51.5" />
+      <point x="2130.75" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.LastAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-98.0" />
+      <point x="624.0" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.IndexScanOperator.IndexScanIterator" target="edu.berkeley.cs186.database.query.IndexScanOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-75.0" />
+      <point x="0.0" y="190.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.AndFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="72.0" y="-51.5" />
+      <point x="3594.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.SNLJOperator.SNLJIterator" target="edu.berkeley.cs186.database.query.join.SNLJOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-109.5" />
+      <point x="0.0" y="51.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.PNLJOperator" target="edu.berkeley.cs186.database.query.join.BNLJOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-28.0" />
+      <point x="4396.75" y="1725.0" />
+      <point x="4489.25" y="1725.0" />
+      <point x="-127.5" y="63.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.MaterializeOperator" target="edu.berkeley.cs186.database.query.SequentialScanOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-63.0" />
+      <point x="0.0" y="167.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.ColumnDataSource" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="50.5" y="-86.5" />
+      <point x="4500.5" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.SumAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-121.0" />
+      <point x="2343.0" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.ModuloFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="77.25" y="-51.5" />
+      <point x="4802.75" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.AggregateDataFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="122.25" y="-109.5" />
+      <point x="1387.75" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.LimitOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-121.0" />
+      <point x="1268.9999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.RangeAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-98.0" />
+      <point x="115.5" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.GHJOperator" target="edu.berkeley.cs186.database.query.JoinOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-190.0" />
+      <point x="5143.75" y="1290.0" />
+      <point x="4568.325" y="1290.0" />
+      <point x="139.5" y="270.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LessThanEqualFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-86.5" y="-51.5" />
+      <point x="1616.5" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LiteralDataSource" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="51.5" y="-63.5" />
+      <point x="6148.5" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.CountAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-86.5" />
+      <point x="1128.0" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.MultiplyFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-77.75" y="-51.5" />
+      <point x="4095.75" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LessThanEqualFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="86.5" y="-51.5" />
+      <point x="1789.5" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.SubtractFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-78.25" y="-51.5" />
+      <point x="1974.25" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.LimitOperator.LimitIterator" target="edu.berkeley.cs186.database.query.LimitOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-86.5" />
+      <point x="0.0" y="121.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.UnequalFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-78.0" y="-51.5" />
+      <point x="3764.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LiteralDataSource" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-51.5" y="-63.5" />
+      <point x="6045.5" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.MinAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-98.0" />
+      <point x="2106.5" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.MultiplyFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="77.75" y="-51.5" />
+      <point x="4251.25" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.GroupByOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-144.0" />
+      <point x="452.0" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.AndFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-72.0" y="-51.5" />
+      <point x="3450.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.IndexScanOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-190.0" />
+      <point x="3266.0" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.UnequalFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="78.0" y="-51.5" />
+      <point x="3920.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.AddFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="72.0" y="-51.5" />
+      <point x="600.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.RandomAggregateFunction" target="edu.berkeley.cs186.database.query.aggr.AggregateFunction" relationship="GENERALIZATION">
+      <point x="0.0" y="-121.0" />
+      <point x="1621.0" y="4552.0" />
+      <point x="1370.5" y="4552.0" />
+      <point x="0.0" y="97.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.NegationFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-61.0" y="-51.5" />
+      <point x="5297.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.JoinOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-270.5" />
+      <point x="4428.825" y="709.0" />
+      <point x="1925.5" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.QueryPlan.JoinPredicate" target="edu.berkeley.cs186.database.query.QueryPlan" relationship="INNER_CLASS">
+      <point x="0.0" y="-98.0" />
+      <point x="220.25" y="3270.0" />
+      <point x="377.0" y="3270.0" />
+      <point x="0.0" y="546.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.QueryPlan.SelectPredicate" target="edu.berkeley.cs186.database.query.QueryPlan" relationship="INNER_CLASS">
+      <point x="0.0" y="-86.5" />
+      <point x="533.75" y="3270.0" />
+      <point x="377.0" y="3270.0" />
+      <point x="0.0" y="546.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.ProjectOperator.ProjectIterator" target="edu.berkeley.cs186.database.query.ProjectOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-75.0" />
+      <point x="0.0" y="167.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.ReplaceFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-58.75" y="-51.5" />
+      <point x="2287.75" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.RoundFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="57.0" y="-51.5" />
+      <point x="5917.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.SortOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-259.0" />
+      <point x="1652.867857142857" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LowerFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-56.25" y="-51.5" />
+      <point x="6276.25" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.SortMergeOperator.SortMergeIterator" target="edu.berkeley.cs186.database.query.join.SortMergeOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-178.5" />
+      <point x="0.0" y="86.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.EqualFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-73.75" y="-51.5" />
+      <point x="6770.75" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.FloorFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-55.0" y="-51.5" />
+      <point x="2893.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.OrFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="70.0" y="-51.5" />
+      <point x="3288.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.AddFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-72.0" y="-51.5" />
+      <point x="456.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.ModuloFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-77.25" y="-51.5" />
+      <point x="4648.25" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.OrFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-70.0" y="-51.5" />
+      <point x="3148.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.NegationFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="61.0" y="-51.5" />
+      <point x="5419.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.SortMergeOperator" target="edu.berkeley.cs186.database.query.JoinOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-86.0" />
+      <point x="6209.75" y="1300.0" />
+      <point x="5143.75" y="1300.0" />
+      <point x="5143.75" y="1290.0" />
+      <point x="4568.325" y="1290.0" />
+      <point x="139.5" y="270.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.GroupByOperator.GroupByIterator" target="edu.berkeley.cs186.database.query.GroupByOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-98.0" />
+      <point x="0.0" y="144.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.EqualFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="73.75" y="-51.5" />
+      <point x="6918.25" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LessThanFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-79.0" y="-51.5" />
+      <point x="4979.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.ReplaceFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="58.75" y="-51.5" />
+      <point x="2405.25" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.UpperFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-56.5" y="-51.5" />
+      <point x="5556.5" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LowerFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="56.25" y="-51.5" />
+      <point x="6388.75" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.DivisionFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-77.25" y="-51.5" />
+      <point x="769.25" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.CeilFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-53.0" y="-51.5" />
+      <point x="6518.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.CeilFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="53.0" y="-51.5" />
+      <point x="6624.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.SequentialScanOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-167.0" />
+      <point x="903.5" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.LessThanFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="79.0" y="-51.5" />
+      <point x="5137.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.SelectOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-144.0" />
+      <point x="2244.0" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.GreaterThanFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-83.5" y="-51.5" />
+      <point x="2567.5" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.SelectOperator.SelectIterator" target="edu.berkeley.cs186.database.query.SelectOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-86.5" />
+      <point x="0.0" y="144.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.ProjectOperator" target="edu.berkeley.cs186.database.query.QueryOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-167.0" />
+      <point x="2733.0" y="709.0" />
+      <point x="1925.4999999999998" y="709.0" />
+      <point x="1925.4999999999998" y="699.0" />
+      <point x="1313.8249999999998" y="699.0" />
+      <point x="122.75" y="339.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.FloorFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="55.0" y="-51.5" />
+      <point x="3003.0" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.JoinOperator.JoinType" target="edu.berkeley.cs186.database.query.JoinOperator" relationship="INNER_CLASS">
+      <point x="0.0" y="-121.0" />
+      <point x="3589.25" y="1290.0" />
+      <point x="4289.325" y="1290.0" />
+      <point x="-139.5" y="270.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.SNLJOperator" target="edu.berkeley.cs186.database.query.JoinOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-51.5" />
+      <point x="3956.75" y="1300.0" />
+      <point x="5143.75" y="1300.0" />
+      <point x="5143.75" y="1290.0" />
+      <point x="4568.325" y="1290.0" />
+      <point x="139.5" y="270.5" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.GreaterThanFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="INNER_CLASS">
+      <point x="83.5" y="-51.5" />
+      <point x="2734.5" y="4038.0" />
+      <point x="3847.0" y="4038.0" />
+      <point x="3847.0" y="4028.0" />
+      <point x="3939.0" y="4028.0" />
+      <point x="97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.RoundFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-57.0" y="-51.5" />
+      <point x="5803.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.aggr.DataFunction.GreaterThanEqualFunction" target="edu.berkeley.cs186.database.query.aggr.DataFunction" relationship="GENERALIZATION">
+      <point x="-91.0" y="-51.5" />
+      <point x="91.0" y="4048.0" />
+      <point x="3837.0" y="4048.0" />
+      <point x="3837.0" y="4028.0" />
+      <point x="3745.0" y="4028.0" />
+      <point x="-97.0" y="236.0" />
+    </edge>
+    <edge source="edu.berkeley.cs186.database.query.join.SHJOperator" target="edu.berkeley.cs186.database.query.JoinOperator" relationship="GENERALIZATION">
+      <point x="0.0" y="-144.0" />
+      <point x="5667.25" y="1300.0" />
+      <point x="5143.75" y="1300.0" />
+      <point x="5143.75" y="1290.0" />
+      <point x="4568.325" y="1290.0" />
+      <point x="139.5" y="270.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="0.7749857387335994" showDependencies="false" x="3290.265162798067" y="914.7866475286152" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Constructors</Category>
+    <Category>Fields</Category>
+    <Category>Inner Classes</Category>
+    <Category>Methods</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

@@ -77,7 +77,7 @@ public class LockManager {
         public void grantOrUpdateLock(Lock lock) {
             // TODO(proj4_part1): implement
             assert (lock != null && checkCompatible(lock.lockType, lock.transactionNum));
-            // 如果当前事务已经有锁那就是升级
+            // 如果当前事务已经有锁那就是升级 / 替换锁
             locks.removeIf(oldLock -> Objects.equals(oldLock.transactionNum, lock.transactionNum));
             locks.add(lock);
 //            System.out.println("add lock " + lock);

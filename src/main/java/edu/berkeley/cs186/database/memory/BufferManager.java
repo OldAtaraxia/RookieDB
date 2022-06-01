@@ -58,7 +58,7 @@ public class BufferManager implements AutoCloseable {
      * underlying byte array. Free frames use the index field to create a (singly) linked
      * list between free frames.
      */
-    class Frame extends BufferFrame {
+     class Frame extends BufferFrame {
         private static final int INVALID_INDEX = Integer.MIN_VALUE;
 
         byte[] contents;
@@ -127,6 +127,7 @@ public class BufferManager implements AutoCloseable {
 
         /**
          * Invalidates the frame, flushing it if necessary.
+         * 就是说让当前frame失效...
          */
         private void invalidate() {
             if (this.isValid()) {
@@ -145,7 +146,7 @@ public class BufferManager implements AutoCloseable {
             }
             int nextFreeIndex = firstFreeIndex;
             firstFreeIndex = this.index;
-            this.index = ~nextFreeIndex;
+            this.index = ~nextFreeIndex; // free frame的index为 secondFreeIndex的取反
         }
 
         private void setUsed() {
@@ -153,7 +154,7 @@ public class BufferManager implements AutoCloseable {
                 throw new IllegalStateException("cannot unfree used frame");
             }
             int index = firstFreeIndex;
-            firstFreeIndex = ~this.index;
+            firstFreeIndex = ~this.index; // 迷惑
             this.index = index;
         }
 
