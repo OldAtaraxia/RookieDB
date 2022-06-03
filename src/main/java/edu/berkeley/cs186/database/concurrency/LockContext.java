@@ -204,10 +204,6 @@ public class LockContext {
             lockman.acquireAndRelease(transaction, name, newLockType, sisDescendants(transaction));
         } else {
             lockman.promote(transaction, this.getResourceName(), newLockType);
-            if (!newLockType.isIntent()) {
-                // 说明是从S升级到了X, 需要释放所有子节点
-                escalate(transaction);
-            }
         }
     }
 

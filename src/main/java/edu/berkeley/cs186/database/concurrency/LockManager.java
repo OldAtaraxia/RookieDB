@@ -371,9 +371,8 @@ public class LockManager {
         }
 
         synchronized (this) {
-            if (resourceEntry.waitingQueue.size() == 0 && resourceEntry.checkCompatible(newLockType, transaction.getTransNum())) {
+            if (resourceEntry.checkCompatible(newLockType, transaction.getTransNum())) {
                 resourceEntry.grantOrUpdateLock(lock);
-
                 // 更新transactionLocks状态
                 transactionLocks.get(transaction.getTransNum()).remove(new Lock(name, oldLockType, transaction.getTransNum()));
                 transactionLocks.get(transaction.getTransNum()).add(lock);
@@ -382,7 +381,7 @@ public class LockManager {
                 shouldBlock = true;
                 resourceEntry.addToQueue(
                         new LockRequest(transaction, lock),
-                        false
+                        true
                 );
             }
         }
