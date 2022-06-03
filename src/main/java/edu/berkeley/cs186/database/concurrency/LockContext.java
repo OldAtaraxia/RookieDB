@@ -111,7 +111,7 @@ public class LockContext {
             throw new DuplicateLockRequestException("lock is already held");
         }
 
-        if (parent != null && !LockType.canBeParentLock(parent.getEffectiveLockType(transaction), lockType)) {
+        if (parent != null && !LockType.canBeParentLock(parent.getExplicitLockType(transaction), lockType)) {
             throw new InvalidLockException("request violates multigranularity locking constraints");
         }
 
@@ -201,7 +201,9 @@ public class LockContext {
                 throw new NoLockHeldException("transaction has no lock on current resource");
             }
             // 调用acquireAndRelease方法
-            lockman.acquireAndRelease(transaction, name, newLockType, sisDescendants(transaction));
+            List<ResourceName> names = sisDescendants(transaction);
+            names.add(name);
+            lockman.acquireAndRelease(transaction, name, newLockType, names);
         } else {
             lockman.promote(transaction, this.getResourceName(), newLockType);
         }
@@ -256,11 +258,14 @@ public class LockContext {
             case IX:
                 // 要升级到X
                 releaseNames = this.lockedDescendants(transaction);
+                releaseNames.add(name); // 需要把自己也释放...不加的话没法通过测试...
                 lockman.acquireAndRelease(transaction, this.getResourceName(), LockType.X, releaseNames);
                 break;
             case IS:
+                // 要升级到S
                 // 需要释放子节点中所有的S/IS节点
                 releaseNames = this.sisDescendants(transaction);
+                releaseNames.add(name);
                 lockman.acquireAndRelease(transaction, this.getResourceName(), LockType.S, releaseNames);
                 break;
             default:

@@ -225,6 +225,7 @@ public class LockManager {
                 // 建立releaseLocks list
                 List<Lock> releaseLocks = new ArrayList<>();
                 for (ResourceName resourceName : releaseNames) {
+                    if (resourceName == name) continue; // 跳过自己
                     LockType releaseLockType = this.getResourceEntry(resourceName).getTransactionLockType(transaction.getTransNum());
                     releaseLocks.add(new Lock(resourceName, releaseLockType, transaction.getTransNum()));
                 }
