@@ -205,22 +205,19 @@ public class LockManager {
         Lock lock = new Lock(name, lockType, transaction.getTransNum());
 
         synchronized (this) {
+            // 首先要判断DuplicateLockRequest的情况
+            if (lockType == resourceEntry.getTransactionLockType(transaction.getTransNum())) {
+                throw new DuplicateLockRequestException("invalid duplicated lock");
+            }
             if (resourceEntry.checkCompatible(lockType, transaction.getTransNum())) {
-                // 首先要判断DuplicateLockRequest的情况
-                if (lockType != LockType.NL && lockType == resourceEntry.getTransactionLockType(transaction.getTransNum())) {
-                    throw new DuplicateLockRequestException("invalid duplicated lock");
-                }
-
                 // 首先release对应的锁
                 // release不需要考虑兼容性问题
                 // 这里查了一下 synchronized(this) 是可重入的
                 for (ResourceName resourceName : releaseNames) {
                     this.release(transaction, resourceName);
                 }
-
                 // 之后授予事务请求的锁
                 resourceEntry.grantOrUpdateLock(lock);
-
                 // 更新transactionLocks状态
                 transactionLocks.putIfAbsent(transaction.getTransNum(), new ArrayList<>());
                 transactionLocks.get(transaction.getTransNum()).add(lock);
@@ -231,14 +228,12 @@ public class LockManager {
                     LockType releaseLockType = this.getResourceEntry(resourceName).getTransactionLockType(transaction.getTransNum());
                     releaseLocks.add(new Lock(resourceName, releaseLockType, transaction.getTransNum()));
                 }
-
                 // 将对应的LockRequest添加到
                 resourceEntry.addToQueue(new LockRequest(
                         transaction,
                         lock,
                         releaseLocks
                 ), true);
-
                 // 准备block对应的事务
                 shouldBlock = true;
                 transaction.prepareBlock();

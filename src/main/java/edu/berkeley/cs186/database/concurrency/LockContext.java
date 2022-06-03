@@ -111,7 +111,7 @@ public class LockContext {
             throw new DuplicateLockRequestException("lock is already held");
         }
 
-        if (parent != null && !LockType.canBeParentLock(parent.getExplicitLockType(transaction), lockType)) {
+        if (parent != null && !LockType.canBeParentLock(parent.getEffectiveLockType(transaction), lockType)) {
             throw new InvalidLockException("request violates multigranularity locking constraints");
         }
 
@@ -176,46 +176,39 @@ public class LockContext {
     public void promote(TransactionContext transaction, LockType newLockType)
             throws DuplicateLockRequestException, NoLockHeldException, InvalidLockException {
         // TODO(proj4_part2): implement
-
         LockType oldLockType = this.getExplicitLockType(transaction);
 
         if (this.readonly) {
             throw new UnsupportedOperationException("LockContext is readonly");
         }
 
-        if (oldLockType.equals(LockType.NL)) {
-            throw new NoLockHeldException("No lock was hold by current transaction");
-        }
-
-        if (oldLockType.equals(newLockType)) {
-            throw new DuplicateLockRequestException("Duplicate Lock Request");
-        }
-
-        // 开始处理invalidLockException
-        // case 1 not a promotion
-        if  (!LockType.substitutable(newLockType, oldLockType)) {
-            throw new InvalidLockException("not a promote");
-        }
-
-        // case 2 promoting cause invalid case
         if (parent != null && !LockType.canBeParentLock(this.parent.getExplicitLockType(transaction), newLockType)) {
             throw new InvalidLockException("promotion causes invalid state");
         }
 
-        // 可以promote了
-        lockman.promote(transaction, this.getResourceName(), newLockType);
+
         if (newLockType.equals(LockType.SIX)) {
-            // 释放所有子节点的 IS/S
-            List<ResourceName> sisDescendants = this.sisDescendants(transaction);
-            for (ResourceName resourceName : sisDescendants) {
-                lockman.release(transaction, resourceName);
+            // 升级到SIX时需要释放所有子节点的S / IS
+            // 这里的异常处理在lockManager#promote中已经被考虑了
+            // 但是没有在lockManager#acquireAndRelease中被考虑
+            if (hasSIXAncestor(transaction)) {
+                throw new InvalidLockException("ancestor already has SIX lock");
             }
-            updateAncestorNumChildren(transaction.getTransNum(), -sisDescendants.size());
+            if  (!LockType.substitutable(newLockType, oldLockType)) {
+                throw new InvalidLockException("not a promote");
+            }
+            if (getExplicitLockType(transaction).equals(LockType.NL)) {
+                throw new NoLockHeldException("transaction has no lock on current resource");
+            }
+            // 调用acquireAndRelease方法
+            lockman.acquireAndRelease(transaction, name, newLockType, sisDescendants(transaction));
+        } else {
+            lockman.promote(transaction, this.getResourceName(), newLockType);
+            if (!newLockType.isIntent()) {
+                // 说明是从S升级到了X, 需要释放所有子节点
+                escalate(transaction);
+            }
         }
-
-
-
-        return;
     }
 
     /**
@@ -253,13 +246,10 @@ public class LockContext {
      */
     public void escalate(TransactionContext transaction) throws NoLockHeldException {
         // TODO(proj4_part2): implement
-        // 突然意识到之前写的部分是有问题的, 必须递归地把所有后继节点的锁都释放掉
         LockType oldLock = this.getExplicitLockType(transaction);
-
         if (this.readonly) {
             throw new UnsupportedOperationException("LockContext is readonly");
         }
-
         if (oldLock.equals(LockType.NL)) {
             throw new NoLockHeldException("No lock hold by current transaction");
         }
@@ -280,10 +270,14 @@ public class LockContext {
             default:
                 break;
         }
+        // 更新父节点的NumChildren
         this.updateAncestorNumChildren(transaction.getTransNum(), -releaseNames.size());
-        this.numChildLocks.putIfAbsent(transaction.getTransNum(), 0);
-        this.numChildLocks.put(transaction.getTransNum(), 0);
-
+        // 更新当前节点的NumChildren
+        updateNumChildrenToZero(transaction.getTransNum());
+        // 更新所有锁被释放的子节点的numChildren
+        for (ResourceName name : releaseNames) {
+            fromResourceName(lockman, name).updateNumChildrenToZero(transaction.getTransNum());
+        }
     }
 
     /**
@@ -307,17 +301,16 @@ public class LockContext {
         if (transaction == null) return LockType.NL;
         // TODO(proj4_part2): implement
         LockType lockType = lockman.getLockType(transaction, this.getResourceName());
-        if ((lockType.equals(LockType.NL) || lockType.isIntent()) && parent != null) {
+        if (lockType.equals(LockType.NL) && parent != null) {
             LockType parentEffectiveLockType = parent.getEffectiveLockType(transaction);
-
             // 根据父节点持有锁的情况来判断
             if (parentEffectiveLockType.equals(LockType.S) || parentEffectiveLockType.equals(LockType.X)) {
                 return parentEffectiveLockType;
             }
-
-            if (hasSIXAncestor(transaction)) {
-                return LockType.S;
-            }
+        }
+        // 父节点有SIX时可能要返回S
+        if (lockType.equals(LockType.IS) && hasSIXAncestor(transaction)) {
+            return LockType.S;
         }
         return lockType;
     }
@@ -352,18 +345,9 @@ public class LockContext {
     private List<ResourceName> sisDescendants(TransactionContext transaction) {
         // TODO(proj4_part2): implement
         List<ResourceName> sisDescendants = new ArrayList<>();
-        for (LockContext lockContext : children.values()) {
-
-            // 递归调用得到子节点的后继节点信息
-            List<ResourceName> childsisDescendants = lockContext.sisDescendants(transaction);
-            for (ResourceName resourceName : childsisDescendants) {
-                sisDescendants.add(resourceName);
-            }
-
-            if (lockContext.getExplicitLockType(transaction).equals(LockType.S)
-                    || lockContext.getExplicitLockType(transaction).equals(LockType.IS)) {
-                sisDescendants.add(lockContext.getResourceName());
-            }
+        List<Lock> locks = lockman.getLocks(transaction);
+        for (Lock lock : locks) {
+            if (lock.name.isDescendantOf(getResourceName()) && (lock.lockType.equals(LockType.IS) || lock.lockType.equals(LockType.S))) sisDescendants.add(lock.name);
         }
         return sisDescendants;
     }
@@ -374,19 +358,10 @@ public class LockContext {
     */
     private List<ResourceName> lockedDescendants (TransactionContext transaction) {
         List<ResourceName> lockedDescendants = new ArrayList<>();
-        for (LockContext lockContext : children.values()) {
-
-            // 递归调用得到子节点的后继节点信息
-            List<ResourceName> childlockedDescendants = lockContext.lockedDescendants(transaction);
-            for (ResourceName resourceName : childlockedDescendants) {
-                lockedDescendants.add(resourceName);
-            }
-
-            if (!lockContext.getExplicitLockType(transaction).equals(LockType.NL)) {
-                lockedDescendants.add(lockContext.getResourceName());
-            }
+        List<Lock> locks = lockman.getLocks(transaction);
+        for (Lock lock : locks) {
+            if (lock.name.isDescendantOf(getResourceName())) lockedDescendants.add(lock.name);
         }
-
         return lockedDescendants;
     }
 
@@ -398,6 +373,11 @@ public class LockContext {
         if (this.parent.parent != null) this.parent.updateAncestorNumChildren(transactionId, delta);
         this.parent.numChildLocks.putIfAbsent(transactionId, 0);
         this.parent.numChildLocks.put(transactionId, this.parent.numChildLocks.get(transactionId) + delta);
+    }
+
+    private void updateNumChildrenToZero (Long transactionId) {
+        this.numChildLocks.putIfAbsent(transactionId, 0);
+        this.numChildLocks.put(transactionId, 0);
     }
 
     /**
