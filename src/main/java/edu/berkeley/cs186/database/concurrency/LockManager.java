@@ -305,20 +305,16 @@ public class LockManager {
         // TODO(proj4_part1): implement
         // You may modify any part of this method.
         ResourceEntry resourceEntry = this.getResourceEntry(name);
-
         synchronized (this) {
             if (resourceEntry.getTransactionLockType(transaction.getTransNum()) == LockType.NL) {
                 throw new NoLockHeldException("No lock on on this resource by the transaction");
             }
-
             Lock releaseLock = new Lock(
                     name,
                     resourceEntry.getTransactionLockType(transaction.getTransNum()),
                     transaction.getTransNum()
             );
-
             this.transactionLocks.get(transaction.getTransNum()).remove(releaseLock);
-
             List<Lock> grantedLocks = resourceEntry.releaseLock(releaseLock);
             for (Lock lock : grantedLocks) {
                 this.transactionLocks.putIfAbsent(lock.transactionNum, new ArrayList<>());

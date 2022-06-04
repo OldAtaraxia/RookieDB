@@ -69,13 +69,13 @@ public class LockUtil {
         // 当前锁是S或者NL, 要升级到X或者S/X
         if (explicitLockType.equals(LockType.S)) {
             // S -> X
-            if (!LockType.canBeParentLock(parentContext.getExplicitLockType(transaction), requestType)) {
+            if (parentContext!= null && !LockType.canBeParentLock(parentContext.getExplicitLockType(transaction), requestType)) {
                 addIntentLock(transaction, parentContext, LockType.IX);
             }
             lockContext.promote(transaction, requestType);
         } else {
             // NL -> S / X
-            if (!LockType.canBeParentLock(parentContext.getExplicitLockType(transaction), requestType)) {
+            if (parentContext != null && !LockType.canBeParentLock(parentContext.getExplicitLockType(transaction), requestType)) {
                 LockType intentLockType = requestType.equals(LockType.X) ? LockType.IX : LockType.IS;
                 addIntentLock(transaction, parentContext, intentLockType);
             }
@@ -105,7 +105,14 @@ public class LockUtil {
                     throw new InvalidLockException("parentContext only allow intent locks");
             }
         }
-        if (lockContext.getExplicitLockType(transaction).equals(LockType.NL)) lockContext.acquire(transaction, lockType); // 加就是了
-        else lockContext.promote(transaction, lockType);
+        // 原来的锁只可能是S, IS, NL. 不可能是X, IX, SIX, 不然直接加就行了
+        if (lockContext.getExplicitLockType(transaction).equals(LockType.NL)) lockContext.acquire(transaction, lockType); // 原来没有锁
+        else if (lockContext.getExplicitLockType(transaction).equals(LockType.S) && lockType.equals(LockType.IX)) {
+            // S -> IX的过程, 需要变成SIX
+            lockContext.promote(transaction, LockType.SIX);
+        } else {
+            // IS -> IX
+            lockContext.promote(transaction, lockType);
+        }
     }
 }

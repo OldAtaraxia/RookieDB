@@ -927,7 +927,17 @@ public class Database implements AutoCloseable {
         public void close() {
             try {
                 // TODO(proj4_part2)
-                return;
+                List<Lock> locks = lockManager.getLocks(this);
+                // 按照数据库层级由低到高排序
+                locks.sort(new Comparator<Lock>() {
+                    @Override
+                    public int compare(Lock o1, Lock o2) {
+                        return o1.name.resourceLevel() - o2.name.resourceLevel();
+                    }
+                });
+                for (int i = locks.size() - 1; i >= 0; i--) {
+                    LockContext.fromResourceName(lockManager, locks.get(i).name).release(this);
+                }
             } catch (Exception e) {
                 // There's a chance an error message from your release phase
                 // logic can get suppressed. This guarantees that the stack
