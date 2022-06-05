@@ -1,8 +1,10 @@
 package edu.berkeley.cs186.database.concurrency;
 
+import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.TransactionContext;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * LockManager maintains the bookkeeping for what transactions have what locks
@@ -41,6 +43,15 @@ public class LockManager {
     // queue for requests on that resource.
     private Map<ResourceName, ResourceEntry> resourceEntries = new HashMap<>();
 
+    // 表示事务之间的等待关系
+    // 事务只能被一个事务阻塞
+    private Map<Long, Long> waitsfor = new HashMap<>();
+    // 监控死锁的后台线程
+    Thread deadLockChecker;
+
+    // 当前活跃的事务
+    private Map<Long, Transaction> runningTransaction = new HashMap<>();
+
     // A ResourceEntry contains the list of locks on a resource, as well as
     // the queue for requests for locks on the resource.
     private class ResourceEntry {
@@ -67,6 +78,32 @@ public class LockManager {
                 }
             }
             return true;
+        }
+
+        // CMU 15-445的说法是锁检查与当前已经有的锁和队列里的锁是否冲突, 是则不加, 不是可以加
+        public boolean checkCpmpatibleWithQueue (LockType lockType, long except) {
+            for (Lock lock : locks) {
+                if (lock.transactionNum == except) continue;
+                if (!LockType.compatible(lock.lockType, lockType)) {
+                    return false;
+                }
+            }
+            for (LockRequest request : waitingQueue) {
+                if (!LockType.compatible(lockType, request.lock.lockType)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public Lock getIncompatibleLock(LockType lockType, long except) {
+            for (Lock lock : locks) {
+                if (lock.transactionNum == except) continue;
+                if (!LockType.compatible(lock.lockType, lockType)) {
+                    return lock;
+                }
+            }
+            throw new IllegalStateException("no Incompatible locks!");
         }
 
         /**
@@ -238,6 +275,8 @@ public class LockManager {
                 // 准备block对应的事务
                 shouldBlock = true;
                 transaction.prepareBlock();
+                // 更新waits-for信息
+                waitsfor.put(transaction.getTransNum(), resourceEntry.getIncompatibleLock(lockType, transaction.getTransNum()).transactionNum);
             }
         }
         if (shouldBlock) {
@@ -268,7 +307,7 @@ public class LockManager {
 
         synchronized (this) {
             // 现在没有其它request在等待并且当前锁与其它锁兼容
-            if (resourceEntry.waitingQueue.size() == 0 && resourceEntry.checkCompatible(lockType, transaction.getTransNum())) {
+            if (resourceEntry.checkCpmpatibleWithQueue(lockType, transaction.getTransNum())) {
                 if (lockType != LockType.NL && lockType == resourceEntry.getTransactionLockType(transaction.getTransNum())) {
                     throw new DuplicateLockRequestException("invalid duplicated lock");
                 }
@@ -283,6 +322,11 @@ public class LockManager {
                         new LockRequest(transaction, lock),
                         false
                 );
+                // 更新waits for信息
+                if (!resourceEntry.checkCompatible(lockType, transaction.getTransNum())) {
+                    waitsfor.put(transaction.getTransNum(), resourceEntry.getIncompatibleLock(lockType, transaction.getTransNum()).transactionNum);
+                }
+
             }
         }
         if (shouldBlock) {
@@ -314,11 +358,17 @@ public class LockManager {
                     resourceEntry.getTransactionLockType(transaction.getTransNum()),
                     transaction.getTransNum()
             );
-            this.transactionLocks.get(transaction.getTransNum()).remove(releaseLock);
             List<Lock> grantedLocks = resourceEntry.releaseLock(releaseLock);
+            this.transactionLocks.get(transaction.getTransNum()).remove(releaseLock);
+            if (this.transactionLocks.get(transaction.getTransNum()).size() == 0) {
+                this.transactionLocks.remove(transaction.getTransNum());
+            }
             for (Lock lock : grantedLocks) {
+                // 更新transactionLocks信息
                 this.transactionLocks.putIfAbsent(lock.transactionNum, new ArrayList<>());
                 this.transactionLocks.get(lock.transactionNum).add(lock);
+                // 更新 waits for信息
+                waitsfor.remove(lock.transactionNum);
             }
         }
     }
@@ -368,7 +418,7 @@ public class LockManager {
         }
 
         synchronized (this) {
-            if (resourceEntry.checkCompatible(newLockType, transaction.getTransNum())) {
+            if (resourceEntry.checkCpmpatibleWithQueue(newLockType, transaction.getTransNum())) {
                 resourceEntry.grantOrUpdateLock(lock);
                 // 更新transactionLocks状态
                 transactionLocks.get(transaction.getTransNum()).remove(new Lock(name, oldLockType, transaction.getTransNum()));
@@ -380,6 +430,8 @@ public class LockManager {
                         new LockRequest(transaction, lock),
                         true
                 );
+                // 更新waits-for信息
+                waitsfor.put(transaction.getTransNum(), resourceEntry.getIncompatibleLock(newLockType, transaction.getTransNum()).transactionNum);
             }
         }
         if (shouldBlock) {
@@ -431,5 +483,77 @@ public class LockManager {
      */
     public synchronized LockContext databaseContext() {
         return context("database");
+    }
+
+    public synchronized void register(Transaction transaction) {
+        runningTransaction.put(transaction.getTransNum(), transaction);
+    }
+
+    public synchronized void deregister(Transaction transaction) {
+        runningTransaction.remove(transaction.getTransNum());
+    }
+
+    public LockManager() {
+        // 后台线程检测死锁
+        deadLockChecker = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.currentThread().isInterrupted()) {
+                    // 每间隔0.5s检测
+                    try {
+                        Thread.sleep(4000);
+                    } catch (InterruptedException e) {
+                        // 休眠时被打断则再次抛出异常
+                        Thread.currentThread().interrupt();
+                    }
+                    deadLockCheck();
+                }
+            }
+        });
+        deadLockChecker.start();
+    }
+
+    public void startDeadLockChecker() {
+        deadLockChecker.start();
+    }
+
+    public void stopDeadLockChecker() {
+        deadLockChecker.interrupt();
+    }
+
+    private void deadLockCheck () {
+        // 检查waits for关系中是否存在环
+        // 统计节点的入度
+        Map <Long, Long> ins = new HashMap<>();
+        synchronized (this) {
+            for (Long tid : waitsfor.keySet()) {
+                ins.putIfAbsent(tid, 0L);
+            }
+            for (Long tid : waitsfor.values()) {
+                ins.putIfAbsent(tid, 0L);
+                ins.put(tid, ins.get(tid) + 1);
+            }
+        }
+
+        // 拓扑排序
+        while (ins.size() > 0) {
+            boolean found = false;
+            for (Long tid : ins.keySet()) {
+                if (ins.get(tid) == 0) {
+                    found = true;
+                    ins.remove(tid);
+                    Long waited = waitsfor.get(tid);
+                    if(ins.containsKey(waited)) ins.put(waited, ins.get(waited) - 1);
+                }
+            }
+            if (!found) break; // 找到环
+        }
+        // 对于找到死锁的情况
+        if (ins.size() != 0) {
+            System.out.println("found dead lock: " + ins.keySet());
+            // 回滚最年轻的事务
+            Long tid = Collections.max(ins.keySet());
+            runningTransaction.get(tid).rollback();
+        }
     }
 }

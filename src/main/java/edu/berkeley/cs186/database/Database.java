@@ -578,6 +578,8 @@ public class Database implements AutoCloseable {
 
         this.recoveryManager.startTransaction(t);
         ++this.numTransactions;
+        // 注册到LockManager
+        lockManager.register(t);
         return t;
     }
 
@@ -1035,6 +1037,7 @@ public class Database implements AutoCloseable {
 
             transactionContext.close();
             activeTransactions.arriveAndDeregister();
+            lockManager.deregister(this);
         }
 
         @Override

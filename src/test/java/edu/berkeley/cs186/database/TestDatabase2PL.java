@@ -317,4 +317,64 @@ public class TestDatabase2PL {
             ), removeMetadataLogs(lockManager.log));
         }
     }
+
+    @Test
+    @Category(PublicTests.class)
+    public void test2PLDeadLock() throws InterruptedException {
+        String tableName = "testTable1";
+        List<RecordId> rids = createTable(tableName, 4);
+
+        lockManager.startLog();
+        System.out.println(rids.size());
+        // 死锁情况:
+        // Transaction 1: X(A)           X(B)
+        // Transaction 2:      X(B)  X(A)
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Transaction t1 = beginTransaction();
+                // X(A)
+                t1.getTransactionContext().deleteRecord(tableName, rids.get(rids.size() - 3));
+                System.out.println(lockManager.getLocks(t1.getTransactionContext()));
+                // 休眠
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //X(B)
+                t1.getTransactionContext().deleteRecord(tableName, rids.get(2));
+                System.out.println(lockManager.getLocks(t1.getTransactionContext()));
+
+                System.out.println("t1 is about to be closed");
+                t1.close();
+            }
+        });
+
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Transaction t2 = beginTransaction();
+                // 休眠
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                // X(B)
+                t2.getTransactionContext().deleteRecord(tableName, rids.get(1));
+                System.out.println(lockManager.getLocks(t2.getTransactionContext()));
+                //X(A)
+                t2.getTransactionContext().deleteRecord(tableName, rids.get(rids.size() - 2));
+                System.out.println(lockManager.getLocks(t2.getTransactionContext()));
+
+                System.out.println("t2 is about to be closed");
+                t2.close();
+            }
+        });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+    }
 }
