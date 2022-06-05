@@ -48,6 +48,7 @@ public class LockManager {
     private Map<Long, Long> waitsfor = new HashMap<>();
     // 监控死锁的后台线程
     Thread deadLockChecker;
+    boolean checkisRunning = false;
 
     // 当前活跃的事务
     private Map<Long, Transaction> runningTransaction = new HashMap<>();
@@ -277,6 +278,7 @@ public class LockManager {
                 transaction.prepareBlock();
                 // 更新waits-for信息
                 waitsfor.put(transaction.getTransNum(), resourceEntry.getIncompatibleLock(lockType, transaction.getTransNum()).transactionNum);
+                if (!checkisRunning) startDeadLockChecker();
             }
         }
         if (shouldBlock) {
@@ -326,7 +328,7 @@ public class LockManager {
                 if (!resourceEntry.checkCompatible(lockType, transaction.getTransNum())) {
                     waitsfor.put(transaction.getTransNum(), resourceEntry.getIncompatibleLock(lockType, transaction.getTransNum()).transactionNum);
                 }
-
+                if (!checkisRunning) startDeadLockChecker();
             }
         }
         if (shouldBlock) {
@@ -369,6 +371,9 @@ public class LockManager {
                 this.transactionLocks.get(lock.transactionNum).add(lock);
                 // 更新 waits for信息
                 waitsfor.remove(lock.transactionNum);
+                if (waitsfor.isEmpty()) {
+                    stopDeadLockChecker();
+                }
             }
         }
     }
@@ -432,6 +437,7 @@ public class LockManager {
                 );
                 // 更新waits-for信息
                 waitsfor.put(transaction.getTransNum(), resourceEntry.getIncompatibleLock(newLockType, transaction.getTransNum()).transactionNum);
+                if (!checkisRunning) startDeadLockChecker();
             }
         }
         if (shouldBlock) {
@@ -510,14 +516,15 @@ public class LockManager {
                 }
             }
         });
-        deadLockChecker.start();
     }
 
     public void startDeadLockChecker() {
+        checkisRunning = true;
         deadLockChecker.start();
     }
 
     public void stopDeadLockChecker() {
+        checkisRunning = false;
         deadLockChecker.interrupt();
     }
 
