@@ -3,6 +3,7 @@ package edu.berkeley.cs186.database;
 import edu.berkeley.cs186.database.categories.Proj4Part2Tests;
 import edu.berkeley.cs186.database.categories.Proj4Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.concurrency.IsolationLevel;
 import edu.berkeley.cs186.database.concurrency.LoggingLockManager;
 import edu.berkeley.cs186.database.table.Record;
 import edu.berkeley.cs186.database.table.RecordId;
@@ -376,5 +377,118 @@ public class TestDatabase2PL {
         t2.start();
         t1.join();
         t2.join();
+    }
+
+    @Test
+    @Category(PublicTests.class)
+    public void testReadCommited() throws InterruptedException {
+        Database.setDBIsolationLevel(IsolationLevel.READ_COMMITTED);
+        String tableName = "testTable1";
+        List<RecordId> rids = createTable(tableName, 4);
+
+        lockManager.startLog();
+        System.out.println(rids.size());
+        final Record[] records = new Record[2];
+        // 这种隔离等级下可以读到commited事务的修改
+        // 不可重复读的案例
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Transaction t1 = beginTransaction();
+                System.out.println("t1 has read " + t1.getTransactionContext().getRecord(tableName, rids.get(1)));
+                // 先休眠3s等t2完成
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                records[0] = t1.getTransactionContext().getRecord(tableName, rids.get(1));
+                System.out.println("t1 has read " + records[0]);
+            }
+        });
+
+        records[1] = new Record(true, 2, "b", 3.2f);
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Transaction t2 = beginTransaction();
+                t2.getTransactionContext().updateRecord(tableName, rids.get(1), records[1]);
+                System.out.println("t2 updates record " + records[1]);
+                System.out.println("t2 is about to be closed");
+                t2.close();
+            }
+        });
+        //
+        t1.start();
+        // 休眠1s后开启事务T2
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        t2.start();
+        t1.join();
+        t2.join();
+        assertEquals(records[0], records[1]);
+    }
+
+    @Test
+    @Category(PublicTests.class)
+    public void testReadUnCommitted () throws InterruptedException {
+        Database.setDBIsolationLevel(IsolationLevel.READ_UNCOMMITTED);
+        String tableName = "testTable1";
+        List<RecordId> rids = createTable(tableName, 4);
+
+        lockManager.startLog();
+        System.out.println(rids.size());
+        final Record[] records = new Record[2];
+        // 这种隔离等级下可以读到commited事务的修改
+        // 不可重复读的案例
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Transaction t1 = beginTransaction();
+                System.out.println("t1 has read " + t1.getTransactionContext().getRecord(tableName, rids.get(1)));
+                // 先休眠3s等t2启动
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                // 这时T2应该还没有commit
+                records[0] = t1.getTransactionContext().getRecord(tableName, rids.get(1));
+                System.out.println("t1 has read " + records[0]);
+            }
+        });
+
+        records[1] = new Record(true, 2, "b", 3.2f);
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Transaction t2 = beginTransaction();
+                t2.getTransactionContext().updateRecord(tableName, rids.get(1), records[1]);
+                System.out.println("t2 updates record " + records[1]);
+                System.out.println("t2 is about to be closed");
+                // 休眠5s让T1读到T2的Uncommitted message
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                t2.close();
+            }
+        });
+        //
+        t1.start();
+        // 休眠1s后开启事务T2
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        t2.start();
+        t1.join();
+        t2.join();
+        assertEquals(records[0], records[1]);
     }
 }

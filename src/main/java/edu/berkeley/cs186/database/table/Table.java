@@ -530,6 +530,10 @@ public class Table implements BacktrackingIterable<Record> {
             this.ridIter = ridIter;
         }
 
+        public RecordIterator(Iterator<RecordId> ridIter, LockContext lockContext) {
+            this.ridIter = ridIter;
+        }
+
         @Override
         public boolean hasNext() {
             return ridIter.hasNext();

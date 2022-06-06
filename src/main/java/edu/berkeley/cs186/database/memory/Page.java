@@ -1,5 +1,7 @@
 package edu.berkeley.cs186.database.memory;
 
+import edu.berkeley.cs186.database.Database;
+import edu.berkeley.cs186.database.TransactionContext;
 import edu.berkeley.cs186.database.common.AbstractBuffer;
 import edu.berkeley.cs186.database.common.Buffer;
 import edu.berkeley.cs186.database.concurrency.DummyLockContext;
@@ -210,6 +212,7 @@ public class Page {
             // TODO(proj4_part2): Update the following line
             LockUtil.ensureSufficientLockHeld(lockContext, LockType.S);
             Page.this.readBytes(this.offset + offset, length, dst);
+            LockUtil.releaseSIfNecessary(lockContext);
             return this;
         }
 

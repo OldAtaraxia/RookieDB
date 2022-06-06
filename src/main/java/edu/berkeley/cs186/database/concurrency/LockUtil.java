@@ -1,5 +1,6 @@
 package edu.berkeley.cs186.database.concurrency;
 
+import edu.berkeley.cs186.database.Database;
 import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.TransactionContext;
 
@@ -32,6 +33,11 @@ public class LockUtil {
     public static void ensureSufficientLockHeld(LockContext lockContext, LockType requestType) {
         // requestType must be S, X, or NL, 不可以是意向锁
         assert (requestType == LockType.S || requestType == LockType.X || requestType == LockType.NL);
+
+        // 检查当前隔离等级, 若为read uncommitted则不加S锁
+        if (Database.DBisolationLevel.equals(IsolationLevel.READ_UNCOMMITTED) && requestType.equals(LockType.S)) {
+            return;
+        }
 
         // Do nothing if the transaction or lockContext is null
         TransactionContext transaction = TransactionContext.getTransaction(); // 得到当前正在运行的事务
@@ -113,6 +119,26 @@ public class LockUtil {
         } else {
             // IS -> IX
             lockContext.promote(transaction, lockType);
+        }
+    }
+
+    // 在read committed下S锁在使用之后要立即释放
+    public static void releaseSIfNecessary (LockContext lockContext) {
+        if (Database.DBisolationLevel.equals(IsolationLevel.READ_COMMITTED)) {
+            // Do nothing if the transaction or lockContext is null
+            TransactionContext transaction = TransactionContext.getTransaction(); // 得到当前正在运行的事务
+            if (transaction == null | lockContext == null) return;
+            // 如果事务持有非S锁则直接返回
+            if (!(lockContext.getExplicitLockType(transaction).equals(LockType.S))) return;
+            lockContext.release(transaction);
+            // 递归释放父节点的IS锁
+            LockContext parentContext = lockContext.parentContext();
+            while (parentContext != null && parentContext.getNumChildren(transaction) == 0) {
+                // 一定是IS或者IX锁
+                assert parentContext.getExplicitLockType(transaction).isIntent();
+                parentContext.release(transaction);
+                parentContext = parentContext.parent;
+            }
         }
     }
 }
