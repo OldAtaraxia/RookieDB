@@ -1,6 +1,7 @@
 package edu.berkeley.cs186.database.table;
 
 import edu.berkeley.cs186.database.DatabaseException;
+import edu.berkeley.cs186.database.TransactionContext;
 import edu.berkeley.cs186.database.common.Bits;
 import edu.berkeley.cs186.database.common.Buffer;
 import edu.berkeley.cs186.database.common.iterator.BacktrackingIterable;
@@ -421,7 +422,7 @@ public class Table implements BacktrackingIterable<Record> {
     public BacktrackingIterator<Record> recordIterator(Iterator<RecordId> rids) {
         // TODO(proj4_part2): Update the following line
         LockUtil.ensureSufficientLockHeld(tableContext, LockType.S);
-        return new RecordIterator(rids);
+        return new RecordIterator(rids, tableContext);
     }
 
     public BacktrackingIterator<Page> pageIterator() {
@@ -525,6 +526,7 @@ public class Table implements BacktrackingIterable<Record> {
      */
     private class RecordIterator implements BacktrackingIterator<Record> {
         private Iterator<RecordId> ridIter;
+        private LockContext sourceContext; // used for lock release
 
         public RecordIterator(Iterator<RecordId> ridIter) {
             this.ridIter = ridIter;
@@ -532,11 +534,14 @@ public class Table implements BacktrackingIterable<Record> {
 
         public RecordIterator(Iterator<RecordId> ridIter, LockContext lockContext) {
             this.ridIter = ridIter;
+            this.sourceContext = lockContext;
         }
 
         @Override
         public boolean hasNext() {
-            return ridIter.hasNext();
+            boolean hasNext = ridIter.hasNext();
+            if (!hasNext) LockUtil.releaseSIfNecessary(sourceContext);
+            return hasNext;
         }
 
         @Override
