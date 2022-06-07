@@ -1,5 +1,8 @@
 package edu.berkeley.cs186.database.common.iterator;
 
+import edu.berkeley.cs186.database.concurrency.LockContext;
+import edu.berkeley.cs186.database.concurrency.LockUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,6 +34,9 @@ public class ConcatBacktrackingIterator<T> implements BacktrackingIterator<T> {
     private int nextIndex = -1;
     private int markIndex = -1;
 
+    // 用于在Read Committed下释放锁
+    private LockContext sourceContext;
+
     /**
      * @param outerIterator An iterator over iterable objects which we want to concatenate.
      *                      Any values this iterator yields will be drawn from iterators created
@@ -42,6 +48,11 @@ public class ConcatBacktrackingIterator<T> implements BacktrackingIterator<T> {
         this.prevItemIterator = null;
         this.nextItemIterator = new EmptyBacktrackingIterator<>();
         this.markItemIterator = null;
+    }
+
+    public ConcatBacktrackingIterator(BacktrackingIterator<BacktrackingIterable<T>> outerIterator, LockContext lockContext) {
+        this(outerIterator);
+        this.sourceContext = lockContext;
     }
 
     /**
@@ -64,7 +75,9 @@ public class ConcatBacktrackingIterator<T> implements BacktrackingIterator<T> {
     @Override
     public boolean hasNext() {
         if (!this.nextItemIterator.hasNext()) this.moveNextToNonEmpty();
-        return this.nextItemIterator.hasNext();
+        boolean hasNext = this.nextItemIterator.hasNext();
+        if (!hasNext) LockUtil.releaseSIfNecessary(sourceContext);
+        return hasNext;
     }
 
     @Override
