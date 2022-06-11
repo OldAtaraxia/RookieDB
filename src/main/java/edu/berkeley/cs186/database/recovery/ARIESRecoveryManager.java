@@ -93,7 +93,16 @@ public class ARIESRecoveryManager implements RecoveryManager {
     @Override
     public long commit(long transNum) {
         // TODO(proj5): implement
-        return -1L;
+        // 写commit日志
+        long lsn = this.logManager.appendToLog(new CommitTransactionLogRecord(transNum,
+                this.transactionTable.get(transNum).lastLSN));
+        // 将commit日志刷入disk
+        this.logManager.flushToLSN(lsn);
+        // 修改事务状态
+        this.transactionTable.get(transNum).transaction.setStatus(Transaction.Status.COMMITTING);
+        // 更新lastLSN
+        this.transactionTable.get(transNum).lastLSN = lsn;
+        return lsn;
     }
 
     /**
@@ -108,8 +117,14 @@ public class ARIESRecoveryManager implements RecoveryManager {
      */
     @Override
     public long abort(long transNum) {
-        // TODO(proj5): implement
-        return -1L;
+        // 写入abort日志
+        long lsn = this.logManager.appendToLog(new AbortTransactionLogRecord(transNum,
+                this.transactionTable.get(transNum).lastLSN));
+        // 更改事务状态
+        this.transactionTable.get(transNum).transaction.setStatus(Transaction.Status.ABORTING);
+        // 更新lastLSN
+        this.transactionTable.get(transNum).lastLSN = lsn;
+        return lsn;
     }
 
     /**
@@ -127,6 +142,23 @@ public class ARIESRecoveryManager implements RecoveryManager {
     @Override
     public long end(long transNum) {
         // TODO(proj5): implement
+        // 首先判断事务是否是因为ABORT而中止
+        if (this.transactionTable.get(transNum).transaction.getStatus().equals(Transaction.Status.ABORTING)) {
+            // 写入END日志之前需要回滚所有之前的操作
+            // 循环遍历prevLSN直到找到事务的第一条操作
+            LogRecord record = this.logManager.fetchLogRecord(this.transactionTable.get(transNum).lastLSN);
+            while (record.getPrevLSN().isPresent()) {
+                record = this.logManager.fetchLogRecord(record.getPrevLSN().get());
+            }
+            rollbackToLSN(transNum, record.LSN);
+        }
+        // 写入日志
+        this.logManager.appendToLog(new EndTransactionLogRecord(transNum,
+                this.transactionTable.get(transNum).lastLSN));
+        // 更新事务状态
+        this.transactionTable.get(transNum).transaction.setStatus(Transaction.Status.COMPLETE);
+        // 从ATT中删除对应事务
+        this.transactionTable.remove(transNum);
         return -1L;
     }
 
@@ -155,6 +187,21 @@ public class ARIESRecoveryManager implements RecoveryManager {
         // back from the next record that hasn't yet been undone.
         long currentLSN = lastRecord.getUndoNextLSN().orElse(lastRecordLSN);
         // TODO(proj5) implement the rollback logic described above
+        while (currentLSN != -1) {
+            LogRecord logRecord = this.logManager.fetchLogRecord(currentLSN);
+            if (logRecord.isUndoable()) {
+                // 增加一条CLR记录
+                LogRecord undoRecord = logRecord.undo(lastRecordLSN);
+                this.logManager.appendToLog(undoRecord);
+                // 调用record.redo来执行undo操作
+                undoRecord.redo(this, diskSpaceManager, bufferManager);
+                // 更新lastRecordLSN
+                lastRecordLSN = undoRecord.LSN;
+            }
+            currentLSN = logRecord.getPrevLSN().isPresent() ? logRecord.getPrevLSN().get() : -1;
+        }
+        // 更新ATT中的lastLSN
+        this.transactionTable.get(transNum).lastLSN = lastRecordLSN;
     }
 
     /**
