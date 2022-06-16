@@ -187,7 +187,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
         // back from the next record that hasn't yet been undone.
         long currentLSN = lastRecord.getUndoNextLSN().orElse(lastRecordLSN);
         // TODO(proj5) implement the rollback logic described above
-        while (currentLSN != -1) {
+        while (currentLSN > LSN) {
             LogRecord logRecord = this.logManager.fetchLogRecord(currentLSN);
             if (logRecord.isUndoable()) {
                 // 增加一条CLR记录
