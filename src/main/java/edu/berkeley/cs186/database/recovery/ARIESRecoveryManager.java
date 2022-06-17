@@ -440,7 +440,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
         long savepointLSN = transactionEntry.getSavepoint(name);
 
         // TODO(proj5): implement
-        return;
+        rollbackToLSN(transNum, savepointLSN);
     }
 
     /**
@@ -463,10 +463,36 @@ public class ARIESRecoveryManager implements RecoveryManager {
         LogRecord beginRecord = new BeginCheckpointLogRecord();
         long beginLSN = logManager.appendToLog(beginRecord);
 
-        Map<Long, Long> chkptDPT = new HashMap<>();
-        Map<Long, Pair<Transaction.Status, Long>> chkptTxnTable = new HashMap<>();
+        // checkpoint中需要写入的DPT和ATT
+        Map<Long, Long> chkptDPT = new HashMap<>(); // pageNum -> recLSN
+        Map<Long, Pair<Transaction.Status, Long>> chkptTxnTable = new HashMap<>(); // tranNum -> <Status, lastLSN>
 
         // TODO(proj5): generate end checkpoint record(s) for DPT and transaction table
+        for (long pageNum : dirtyPageTable.keySet()) {
+            // 已经无法容纳新的记录了
+            if (!EndCheckpointLogRecord.fitsInOneRecord(chkptDPT.size() + 1, 0)) {
+                // 将当前临时表写入EndCheckPoint日志
+                LogRecord endCheckpointLogRecord = new EndCheckpointLogRecord(chkptDPT, chkptTxnTable);
+                logManager.appendToLog(endCheckpointLogRecord);
+                // 清空临时DPT
+                chkptDPT.clear();
+            }
+            // 依然可以容纳新的记录
+            chkptDPT.put(pageNum, dirtyPageTable.get(pageNum));
+        }
+
+        for (long tranNum : transactionTable.keySet()) {
+            // 已经无法容纳新的记录了
+            if (!EndCheckpointLogRecord.fitsInOneRecord(chkptDPT.size(), chkptTxnTable.size() + 1)) {
+                // 将当前临时表写入EndCheckPoint日志
+                LogRecord endCheckpointLogRecord = new EndCheckpointLogRecord(chkptDPT, chkptTxnTable);
+                // 清空临时表
+                chkptDPT.clear();
+                chkptTxnTable.clear();
+            }
+            // 依然可以容纳新的记录
+            chkptTxnTable.put(tranNum, new Pair(transactionTable.get(tranNum).transaction.getStatus(), transactionTable.get(tranNum).lastLSN));
+        }
 
         // Last end checkpoint record
         LogRecord endRecord = new EndCheckpointLogRecord(chkptDPT, chkptTxnTable);
