@@ -2,10 +2,8 @@ package edu.berkeley.cs186.database.recovery;
 
 import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.common.Pair;
-import edu.berkeley.cs186.database.concurrency.DummyLockContext;
 import edu.berkeley.cs186.database.io.DiskSpaceManager;
 import edu.berkeley.cs186.database.memory.BufferManager;
-import edu.berkeley.cs186.database.memory.Page;
 import edu.berkeley.cs186.database.recovery.records.*;
 
 import java.util.*;
@@ -548,9 +546,9 @@ public class ARIESRecoveryManager implements RecoveryManager {
         this.restartAnalysis();
         this.restartRedo();
         this.redoComplete = true;
-        this.cleanDPT();
+        this.cleanDPT(); // 需要把已经不脏的Page从DPT清理出去
         this.restartUndo();
-        this.checkpoint();
+        this.checkpoint(); // recover结束之后写一个checkpoint
     }
 
     /**
@@ -602,7 +600,157 @@ public class ARIESRecoveryManager implements RecoveryManager {
         // Set of transactions that have completed
         Set<Long> endedTransactions = new HashSet<>();
         // TODO(proj5): implement
-        return;
+        // 从上个chechpoint开始遍历日志
+        LogRecord logRecord;
+        Iterator<LogRecord> logRecordIterator = logManager.scanFrom(LSN);
+        while (logRecordIterator.hasNext()) {
+            logRecord = logRecordIterator.next();
+            // log record for tansaction operations: 需要更新ATT
+            checkTransactionOperation(logRecord);
+            // log records for Page Operations: 需要更新DPT
+            checkPageOperation(logRecord);
+            // log record for Transaction Status Changes: 需要更新ATT中的事务状态
+            checkTransactionStatusChange(logRecord, endedTransactions);
+            // log record For end Transaction
+            // 更新ATT中的lastLSN与状态信息
+        }
+        endTrascations();
+    }
+
+    /**
+     * 在analysis的最后阶段把正在committing的事务我们直接向日志中写入END日志并把其从事务表中删除.
+     * 对于在崩溃时还在运行的事务都应该视为崩溃并向日志中写入abort.
+     */
+    private void endTrascations() {
+        // 遍历整个ATT
+        for (long tranNum : transactionTable.keySet()) {
+            Transaction transaction = transactionTable.get(tranNum).transaction;
+            if (transaction.getStatus().equals(Transaction.Status.COMMITTING)) {
+                // 对于commiting的事务将其标记为完成
+                transaction.cleanup();
+                transaction.setStatus(Transaction.Status.COMPLETE);
+                transactionTable.remove(tranNum);
+            } else if (transaction.getStatus().equals(Transaction.Status.RUNNING)) {
+                // 对于running的事务将其视为abort
+                transaction.setStatus(Transaction.Status.RECOVERY_ABORTING);
+                transactionTable.get(tranNum).lastLSN = logManager.appendToLog(new AbortTransactionLogRecord(tranNum, transactionTable.get(tranNum).lastLSN));
+            }
+        }
+    }
+
+    /**
+     * util function to deal with log record for tansaction operations
+     */
+    private void checkTransactionOperation(LogRecord logRecord) {
+        long LSN = logRecord.getLSN();
+        if (logRecord.getTransNum().isPresent()) {
+            Long transNum = logRecord.getTransNum().get();
+            // 加入ATT
+            if (!transactionTable.containsKey(transNum)) {
+                // 调用startTransaction来添加到ATT
+                startTransaction(newTransaction.apply(transNum));
+            }
+            //更新事务的lastLSN
+            transactionTable.get(transNum).lastLSN = LSN;
+        }
+    }
+
+    /**
+     * util function to deal with log records for Page Operations
+     */
+    private void checkPageOperation(LogRecord logRecord) {
+        long LSN = logRecord.getLSN();
+        if (logRecord.getPageNum().isPresent()) {
+            Long pageNum = logRecord.getPageNum().get();
+            if (logRecord.getType().equals(LogType.UPDATE_PAGE) || logRecord.getType().equals(LogType.UNDO_UPDATE_PAGE)) {
+                // 对Page进行了更新, 若DPT中不存在对应Page应该加入到DPT中
+                dirtyPageTable.putIfAbsent(pageNum, LSN);
+            }
+            if (logRecord.getType().equals(LogType.FREE_PAGE) ||logRecord.getType().equals(LogType.UNDO_ALLOC_PAGE)) {
+                // 相当于刷新了(删除了)Page, 也要从DPT中删掉
+                dirtyPageTable.remove(pageNum);
+            }
+            // don't neew to do anything for AllocPage / UndoFreePage
+        }
+    }
+
+    /**
+    * util function to deal with log record for Transaction Status Changes
+    * */
+    private void checkTransactionStatusChange (LogRecord logRecord, Set endSet) {
+        if (!logRecord.getTransNum().isPresent()) return;
+        Transaction transaction = transactionTable.get(logRecord.getTransNum().get()).transaction;
+        switch (logRecord.getType()) {
+            case COMMIT_TRANSACTION:
+                transaction.setStatus(Transaction.Status.COMMITTING);
+                break;
+            case ABORT_TRANSACTION:
+                transaction.setStatus(Transaction.Status.RECOVERY_ABORTING);
+                break;
+            case END_TRANSACTION:
+                // 关闭事务 -> 设置事务状态 -> 从ATT中删除 -> 加入endSet用于之后的checkpoint过程
+                transaction.cleanup();
+                transaction.setStatus(Transaction.Status.COMPLETE);
+                transactionTable.remove(logRecord.getTransNum().get());
+                endSet.add(logRecord.getTransNum());
+                break;
+            default: break;
+        }
+    }
+
+    /**
+     * util function to deal with log record for checkpoint
+     */
+    private void checkEndCheckpoint (LogRecord logRecord, Set endTransactions) {
+        long LSN = logRecord.getLSN();
+        if (logRecord.getType().equals(LogType.END_CHECKPOINT)) {
+            // 读取其中的表并与memory中的当前表融合
+
+            // update ATT
+            Map<Long, Pair<Transaction.Status, Long>> checkpointTransactionTable = logRecord.getTransactionTable();
+            for (Long tranNum : checkpointTransactionTable.keySet()) {
+                if (endTransactions.contains(tranNum)) continue;
+                Pair<Transaction.Status, Long> pair = checkpointTransactionTable.get(tranNum);
+                if (!transactionTable.containsKey(tranNum)) {
+                    startTransaction(newTransaction.apply(tranNum));
+                }
+                // update the lastLSN
+                transactionTable.get(tranNum).lastLSN = Math.max(transactionTable.get(tranNum).lastLSN, LSN);
+                // update the Transaction Status if is more advanced than what we have in memory
+                // 检查是否有必要更新事务状态, 有则更新. 注意ABORTING要改为RECOVERY_ABORTING
+                if (transactionStatusBefore(transactionTable.get(tranNum).transaction.getStatus(), pair.getFirst())) {
+                    if (pair.getFirst().equals(Transaction.Status.ABORTING)) {
+                        transactionTable.get(tranNum).transaction.setStatus(Transaction.Status.RECOVERY_ABORTING);
+                    } else {
+                        transactionTable.get(tranNum).transaction.setStatus(pair.getFirst());
+                    }
+                }
+            }
+
+            // update DPT
+            Map<Long, Long> checkpointDirtyPageTable = logRecord.getDirtyPageTable();
+            for (Long tranNum : checkpointDirtyPageTable.keySet()) {
+                // 因为checkpoing记录的recLSN一定是最早的
+                dirtyPageTable.put(tranNum, checkpointDirtyPageTable.get(tranNum));
+            }
+
+        }
+    }
+
+    /**
+     * util for judging the before and after for the Transaction Status
+     * @param status1
+     * @param status2
+     * @return status1 < status2
+     */
+    private boolean transactionStatusBefore (Transaction.Status status1, Transaction.Status status2) {
+        if (status1.equals(Transaction.Status.RUNNING)) {
+            return status2.equals(Transaction.Status.COMMITTING) || status2.equals(Transaction.Status.COMPLETE)|| status2.equals(Transaction.Status.ABORTING);
+        } else if (status1.equals(Transaction.Status.COMMITTING) || status1.equals(Transaction.Status.ABORTING)) {
+            return status2.equals(Transaction.Status.COMPLETE);
+        } else {
+            return false;
+        }
     }
 
     /**
