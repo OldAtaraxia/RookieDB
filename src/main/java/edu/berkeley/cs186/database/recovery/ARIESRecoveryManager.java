@@ -611,8 +611,8 @@ public class ARIESRecoveryManager implements RecoveryManager {
             checkPageOperation(logRecord);
             // log record for Transaction Status Changes: 需要更新ATT中的事务状态
             checkTransactionStatusChange(logRecord, endedTransactions);
-            // log record For end Transaction
-            // 更新ATT中的lastLSN与状态信息
+            // log record for end checkpoint
+            checkEndCheckpoint(logRecord, endedTransactions);
         }
         endTrascations();
     }
@@ -629,6 +629,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
                 // 对于commiting的事务将其标记为完成
                 transaction.cleanup();
                 transaction.setStatus(Transaction.Status.COMPLETE);
+                logManager.appendToLog(new EndTransactionLogRecord(tranNum, transactionTable.get(tranNum).lastLSN));
                 transactionTable.remove(tranNum);
             } else if (transaction.getStatus().equals(Transaction.Status.RUNNING)) {
                 // 对于running的事务将其视为abort
@@ -642,7 +643,6 @@ public class ARIESRecoveryManager implements RecoveryManager {
      * util function to deal with log record for tansaction operations
      */
     private void checkTransactionOperation(LogRecord logRecord) {
-        long LSN = logRecord.getLSN();
         if (logRecord.getTransNum().isPresent()) {
             Long transNum = logRecord.getTransNum().get();
             // 加入ATT
@@ -651,7 +651,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
                 startTransaction(newTransaction.apply(transNum));
             }
             //更新事务的lastLSN
-            transactionTable.get(transNum).lastLSN = LSN;
+            transactionTable.get(transNum).lastLSN = logRecord.getLSN();
         }
     }
 
@@ -702,10 +702,8 @@ public class ARIESRecoveryManager implements RecoveryManager {
      * util function to deal with log record for checkpoint
      */
     private void checkEndCheckpoint (LogRecord logRecord, Set endTransactions) {
-        long LSN = logRecord.getLSN();
+        // 读取endCheckpoint记录的表并与memory中的当前表融合
         if (logRecord.getType().equals(LogType.END_CHECKPOINT)) {
-            // 读取其中的表并与memory中的当前表融合
-
             // update ATT
             Map<Long, Pair<Transaction.Status, Long>> checkpointTransactionTable = logRecord.getTransactionTable();
             for (Long tranNum : checkpointTransactionTable.keySet()) {
@@ -715,11 +713,12 @@ public class ARIESRecoveryManager implements RecoveryManager {
                     startTransaction(newTransaction.apply(tranNum));
                 }
                 // update the lastLSN
-                transactionTable.get(tranNum).lastLSN = Math.max(transactionTable.get(tranNum).lastLSN, LSN);
+                transactionTable.get(tranNum).lastLSN = Math.max(transactionTable.get(tranNum).lastLSN, pair.getSecond());
                 // update the Transaction Status if is more advanced than what we have in memory
                 // 检查是否有必要更新事务状态, 有则更新. 注意ABORTING要改为RECOVERY_ABORTING
                 if (transactionStatusBefore(transactionTable.get(tranNum).transaction.getStatus(), pair.getFirst())) {
                     if (pair.getFirst().equals(Transaction.Status.ABORTING)) {
+                        // 就是把Aborting换成Recovery_aborting
                         transactionTable.get(tranNum).transaction.setStatus(Transaction.Status.RECOVERY_ABORTING);
                     } else {
                         transactionTable.get(tranNum).transaction.setStatus(pair.getFirst());
@@ -731,7 +730,12 @@ public class ARIESRecoveryManager implements RecoveryManager {
             Map<Long, Long> checkpointDirtyPageTable = logRecord.getDirtyPageTable();
             for (Long tranNum : checkpointDirtyPageTable.keySet()) {
                 // 因为checkpoing记录的recLSN一定是最早的
-                dirtyPageTable.put(tranNum, checkpointDirtyPageTable.get(tranNum));
+                if (!dirtyPageTable.containsKey(tranNum)) {
+                    dirtyPageTable.put(tranNum, checkpointDirtyPageTable.get(tranNum));
+                } else {
+                    dirtyPageTable.put(tranNum, Math.min(checkpointDirtyPageTable.get(tranNum), dirtyPageTable.get(tranNum)));
+                }
+
             }
 
         }
