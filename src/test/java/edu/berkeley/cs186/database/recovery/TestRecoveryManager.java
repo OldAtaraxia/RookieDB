@@ -893,7 +893,6 @@ public class TestRecoveryManager {
 
         // check transaction table
         // T1 should have been completed and removed (log #5)
-        System.out.println(transactionTable);
         assertFalse(transactionTable.containsKey(1L));
         // T2 should have been completed and removed (log #9 sets to committing)
         assertFalse(transactionTable.containsKey(2L));

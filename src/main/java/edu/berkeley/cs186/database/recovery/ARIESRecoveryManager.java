@@ -486,6 +486,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
             if (!EndCheckpointLogRecord.fitsInOneRecord(chkptDPT.size(), chkptTxnTable.size() + 1)) {
                 // 将当前临时表写入EndCheckPoint日志
                 LogRecord endCheckpointLogRecord = new EndCheckpointLogRecord(chkptDPT, chkptTxnTable);
+                logManager.appendToLog(endCheckpointLogRecord);
                 // 清空临时表
                 chkptDPT.clear();
                 chkptTxnTable.clear();
@@ -679,7 +680,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
     /**
     * util function to deal with log record for Transaction Status Changes
     * */
-    private void checkTransactionStatusChange (LogRecord logRecord, Set endSet) {
+    private void checkTransactionStatusChange (LogRecord logRecord, Set<Long> endSet) {
         if (!logRecord.getTransNum().isPresent()) return;
         Transaction transaction = transactionTable.get(logRecord.getTransNum().get()).transaction;
         switch (logRecord.getType()) {
@@ -694,7 +695,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
                 transaction.cleanup();
                 transaction.setStatus(Transaction.Status.COMPLETE);
                 transactionTable.remove(logRecord.getTransNum().get());
-                endSet.add(logRecord.getTransNum());
+                endSet.add(logRecord.getTransNum().get());
                 break;
             default: break;
         }
@@ -709,15 +710,18 @@ public class ARIESRecoveryManager implements RecoveryManager {
             // update ATT
             Map<Long, Pair<Transaction.Status, Long>> checkpointTransactionTable = logRecord.getTransactionTable();
             for (Long tranNum : checkpointTransactionTable.keySet()) {
-                if (endTransactions.contains(tranNum)) continue;
+                if (endTransactions.contains(tranNum)) {
+                    continue;
+                }
                 Pair<Transaction.Status, Long> pair = checkpointTransactionTable.get(tranNum);
                 if (!transactionTable.containsKey(tranNum)) {
                     startTransaction(newTransaction.apply(tranNum));
+                    transactionTable.get(tranNum).lastLSN = pair.getSecond();
                 }
                 // update the lastLSN
                 transactionTable.get(tranNum).lastLSN = Math.max(transactionTable.get(tranNum).lastLSN, pair.getSecond());
                 // update the Transaction Status if is more advanced than what we have in memory
-                // 检查是否有必要更新事务状态, 有则更新. 注意ABORTING要改为RECOVERY_ABORTING
+                // 检查是否有必要更新事务状态, 有则更新. 注意ABORTING要改为RECOVERY_ABORTING, Ended的事务要让它结束掉
                 if (transactionStatusBefore(transactionTable.get(tranNum).transaction.getStatus(), pair.getFirst())) {
                     if (pair.getFirst().equals(Transaction.Status.ABORTING)) {
                         // 就是把Aborting换成Recovery_aborting
@@ -850,7 +854,7 @@ public class ARIESRecoveryManager implements RecoveryManager {
             }
 
             Transaction transaction = transactionTable.get(transNum).transaction;
-            if (!logRecord.getPrevLSN().isPresent()) {
+            if (!logRecord.getPrevLSN().isPresent() || logRecord.getPrevLSN().get() == 0) {
                 // End the transaction if the LSN from the previous step is 0
                 transaction.cleanup();
                 transaction.setStatus(Transaction.Status.COMPLETE);

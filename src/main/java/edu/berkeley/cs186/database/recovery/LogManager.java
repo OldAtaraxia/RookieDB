@@ -76,6 +76,7 @@ public class LogManager implements Iterable<LogRecord>, AutoCloseable {
      * @return LSN of new log record
      */
     public synchronized long appendToLog(LogRecord record) {
+        // System.out.println("write log of " +record.getType() + " from transaction " + (record.getTransNum().isPresent() ? record.getTransNum().get() : "nowhere"));
         byte[] bytes = record.toBytes();
         // loop in case accessing log tail requires flushing the log in order to evict dirty page to load log tail
         do {
