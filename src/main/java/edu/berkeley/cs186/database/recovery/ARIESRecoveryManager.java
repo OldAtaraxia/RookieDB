@@ -2,8 +2,10 @@ package edu.berkeley.cs186.database.recovery;
 
 import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.common.Pair;
+import edu.berkeley.cs186.database.concurrency.DummyLockContext;
 import edu.berkeley.cs186.database.io.DiskSpaceManager;
 import edu.berkeley.cs186.database.memory.BufferManager;
+import edu.berkeley.cs186.database.memory.Page;
 import edu.berkeley.cs186.database.recovery.records.*;
 
 import java.util.*;
@@ -771,7 +773,43 @@ public class ARIESRecoveryManager implements RecoveryManager {
      */
     void restartRedo() {
         // TODO(proj5): implement
-        return;
+        Optional<Long> minRecLsn = dirtyPageTable.values().stream().min(Long::compareTo);
+        if(!minRecLsn.isPresent()) {
+            // 除非DPT是空的...那就不用遍历了
+            return;
+        }
+        Iterator<LogRecord> logRecordIterator = logManager.scanFrom(minRecLsn.get());
+        while (logRecordIterator.hasNext()) {
+            LogRecord logRecord = logRecordIterator.next();
+            if (logRecord.isRedoable()) {
+                if (logModifyPages(logRecord.getType())) {
+                    assert logRecord.getPageNum().isPresent();
+                    Long pageNum = logRecord.getPageNum().get();
+                    // 要保证DPT中有Page且recLSN <= LSN
+                    if (!(dirtyPageTable.containsKey(pageNum) && dirtyPageTable.get(pageNum) <= logRecord.getLSN())) continue;
+                    // 不需要考虑并发问题, 可以用一个DummyLockContext
+                    // no other operations can run at the same time as the redo phase
+                    Page page = bufferManager.fetchPage(new DummyLockContext(), pageNum);
+                    long pageLSN;
+                    try {
+                       pageLSN = page.getPageLSN();
+                    } finally {
+                        page.unpin();
+                    }
+                    // 判断当前LSN是否新于PageLSN
+                    if (!(logRecord.getLSN() > pageLSN)) continue;
+                }
+                logRecord.redo(this, diskSpaceManager, bufferManager);
+            }
+        }
+    }
+
+    /**
+     * util method to judge whether the Type of log is to modify a page
+     */
+    private boolean logModifyPages(LogType logType) {
+        return logType.equals(LogType.UPDATE_PAGE) || logType.equals(LogType.UNDO_UPDATE_PAGE)
+                || logType.equals(LogType.UNDO_ALLOC_PAGE) || logType.equals(LogType.FREE_PAGE);
     }
 
     /**
