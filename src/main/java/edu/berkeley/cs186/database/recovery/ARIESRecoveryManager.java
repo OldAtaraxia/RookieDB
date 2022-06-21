@@ -825,7 +825,42 @@ public class ARIESRecoveryManager implements RecoveryManager {
      */
     void restartUndo() {
         // TODO(proj5): implement
-        return;
+        Queue<Pair<Long, Long>> undoLSNs = new PriorityQueue<>(new PairFirstReverseComparator<>());
+        for (Long transNum : transactionTable.keySet()) {
+            if (transactionTable.get(transNum).transaction.getStatus().equals(Transaction.Status.RECOVERY_ABORTING)) {
+                Long LSN = transactionTable.get(transNum).lastLSN;
+                LogRecord logRecord = logManager.fetchLogRecord(LSN);
+                if (logRecord.getType().equals(LogType.UNDO_UPDATE_PAGE)) {
+                    LSN = logRecord.getUndoNextLSN().isPresent() ? logRecord.getUndoNextLSN().get() : null;
+                }
+                // null可能是已经undo完了没有停下事务也可能是空事务...
+                if(LSN != null) undoLSNs.add(new Pair<>(LSN, transNum));
+            }
+        }
+        while (!undoLSNs.isEmpty()) {
+            Pair<Long, Long> poll = undoLSNs.poll();
+            Long LSN = poll.getFirst();
+            Long transNum = poll.getSecond();
+            LogRecord logRecord = logManager.fetchLogRecord(LSN);
+            if (logRecord.isUndoable()) {
+                LogRecord CLR = logRecord.undo(transactionTable.get(transNum).lastLSN);
+                logManager.appendToLog(CLR);
+                transactionTable.get(transNum).lastLSN = CLR.LSN;
+                CLR.redo(this, diskSpaceManager, bufferManager); // CLR的redo是我们的undo
+            }
+
+            Transaction transaction = transactionTable.get(transNum).transaction;
+            if (!logRecord.getPrevLSN().isPresent()) {
+                // End the transaction if the LSN from the previous step is 0
+                transaction.cleanup();
+                transaction.setStatus(Transaction.Status.COMPLETE);
+                logManager.appendToLog(new EndTransactionLogRecord(transaction.getTransNum(), transactionTable.get(transNum).lastLSN));
+                transactionTable.remove(transNum);
+            } else {
+                // 把下一条加入Queue
+                undoLSNs.add(new Pair<>(logRecord.getPrevLSN().get(), transNum));
+            }
+        }
     }
 
     /**
